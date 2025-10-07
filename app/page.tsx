@@ -20,7 +20,7 @@ export default function Home() {
           {" "}
           {/* Ensure text-center container takes full width */}
           <h1 className="text-6xl mb-4 font-bold">BamBot</h1>
-          <p className="text-2xl mb-8">Make it easy to play with robots 🤖</p>
+          <p className="text-2xl mb-8">Facilita jugar con robots 🤖</p>
           {/* Changed from grid to flex for flexible centering */}
           <div className="container mx-auto p-4 flex flex-wrap justify-center gap-8 relative z-10">
             {robots.map((robot) => (
@@ -48,14 +48,14 @@ export default function Home() {
                       robot.assembleLink ? "w-1/2 border-r" : "w-full"
                     }`}
                   >
-                    Play
+                    Jugar
                   </Link>
                   {robot.assembleLink && (
                     <Link
                       href={robot.assembleLink}
                       className="bg-black text-white w-1/2 py-2 text-center hover:bg-zinc-800 border-t border-zinc-500"
                     >
-                      Assemble
+                      Ensamblar
                     </Link>
                   )}
                 </div>
@@ -67,7 +67,7 @@ export default function Home() {
       <footer className="container mx-auto p-4 text-center relative z-10">
         <div className="flex justify-center space-x-4">
           <p className="text-lg text-green-600 font-medium mb-4">
-            Join our community:
+            Únete a nuestra comunidad:
           </p>
 
           <Link

@@ -14,7 +14,7 @@ export default function ChatControlButton({
     <GlassButton
       onClick={onToggleControlPanel}
       icon={<RiChatAiLine size={24} />}
-      tooltip="Chat Control"
+      tooltip="Control de Chat"
       pressed={showControlPanel}
     />
   );

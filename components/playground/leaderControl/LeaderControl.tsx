@@ -5,14 +5,22 @@ import useMeasure from "react-use-measure";
 import { panelStyle } from "@/components/playground/panelStyle";
 import { LeaderConnectionHelpDialog } from "./LeaderConnectionHelpDialog";
 
-/**
- * props:
- * - leaderControl: { isConnected, connectLeader, disconnectLeader, positions }
- * - jointDetails: JointDetails[]
- * - onSync: (leaderAngles: { servoId: number, angle: number }[]) => void
- * - show: boolean
- * - onHide: () => void
- */
+interface LeaderControlProps {
+  leaderControl: {
+    isConnected: boolean;
+    connectLeader: () => Promise<void>;
+    disconnectLeader: () => Promise<void>;
+    getPositions: () => Promise<Map<number, number>>;
+  };
+  jointDetails: Array<{
+    servoId: number;
+    jointType: "revolute" | "continuous";
+    name?: string;
+  }>;
+  onSync: (leaderAngles: { servoId: number; angle: number }[]) => void;
+  show?: boolean;
+  onHide: () => void;
+}
 
 const SYNC_INTERVAL = 10; // ms
 
@@ -22,7 +30,7 @@ const LeaderControl = ({
   onSync,
   show = true,
   onHide,
-}) => {
+}: LeaderControlProps) => {
   const revoluteJoints = jointDetails.filter((j) => j.jointType === "revolute");
   const { isConnected, connectLeader, disconnectLeader, getPositions } =
     leaderControl;
@@ -41,7 +49,7 @@ const LeaderControl = ({
   // Periodically fetch positionChange and sync
   useEffect(() => {
     if (!isConnected) return;
-    let timer = setInterval(async () => {
+    const timer: NodeJS.Timeout = setInterval(async () => {
       const positions = await getPositions();
       // If positions map is empty, it might be due to disconnection or an error.
       // Avoid updating angles to prevent them from resetting to 0.
@@ -95,7 +103,7 @@ const LeaderControl = ({
     <Rnd
       position={position}
       onDragStop={(_, d) => setPosition({ x: d.x, y: d.y })}
-      bounds="window"
+      bounds="parent"
       className="z-50"
       style={{ display: show ? undefined : "none" }}
     >
@@ -104,10 +112,10 @@ const LeaderControl = ({
         className={"max-h-[90vh] overflow-y-auto text-sm " + panelStyle}
       >
         <h3 className="mt-0 mb-4 border-b border-white/50 pb-1 font-bold text-base flex justify-between items-center">
-          <span>Control via Leader Robot</span>
+          <span>Control vía Robot Líder</span>
           <button
             className="ml-2 text-xl hover:bg-zinc-800 px-2 rounded-full"
-            title="Collapse"
+            title="Colapsar"
             onClick={onHide}
             onTouchEnd={onHide}
           >
@@ -117,7 +125,7 @@ const LeaderControl = ({
 
         {revoluteJoints.length === 0 ? (
           <div className="mt-4 text-center text-gray-400">
-            No joints available for leader control.
+            No hay articulaciones disponibles para control líder.
           </div>
         ) : (
           <>
@@ -125,9 +133,9 @@ const LeaderControl = ({
               <table className="w-full text-left">
                 <thead>
                   <tr>
-                    <th className="border-b border-gray-600 pb-1">Joint</th>
+                    <th className="border-b border-gray-600 pb-1">Articulación</th>
                     <th className="border-b border-gray-600 pb-1 text-center pl-4">
-                      Angle
+                      Ángulo
                     </th>
                   </tr>
                 </thead>
@@ -161,8 +169,8 @@ const LeaderControl = ({
                   disabled={connectionStatus !== "idle"}
                 >
                   {connectionStatus === "disconnecting"
-                    ? "Disconnecting..."
-                    : "Disconnect Leader Robot"}
+                    ? "Desconectando..."
+                    : "Desconectar Robot Líder"}
                 </button>
               ) : (
                 <button
@@ -175,8 +183,8 @@ const LeaderControl = ({
                   disabled={connectionStatus !== "idle"}
                 >
                   {connectionStatus === "connecting"
-                    ? "Connecting..."
-                    : "Connect Leader Robot"}
+                    ? "Conectando..."
+                    : "Conectar Robot Líder"}
                 </button>
               )}
               <LeaderConnectionHelpDialog />

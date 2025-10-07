@@ -179,9 +179,11 @@ export function useRobotControl(
         );
         if (jointState) {
           if (joint.jointType === "revolute") {
-            currentFrame.push(jointState.degrees ?? 0);
+            const degrees = typeof jointState.degrees === 'number' ? jointState.degrees : 0;
+            currentFrame.push(degrees);
           } else if (joint.jointType === "continuous") {
-            currentFrame.push(jointState.speed ?? 0);
+            const speed = typeof jointState.speed === 'number' ? jointState.speed : 0;
+            currentFrame.push(speed);
           }
         } else {
           currentFrame.push(0);

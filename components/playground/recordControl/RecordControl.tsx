@@ -182,7 +182,7 @@ const RecordControl = ({
     <Rnd
       position={position}
       onDragStop={(_, d) => setPosition({ x: d.x, y: d.y })}
-      bounds="window"
+      bounds="parent"
       className="z-50"
       style={{ display: show ? undefined : "none" }}
     >
@@ -191,10 +191,10 @@ const RecordControl = ({
         className={"max-h-[90vh] overflow-y-auto text-sm " + panelStyle}
       >
         <h3 className="mt-0 mb-4 border-b border-white/50 pb-1 font-bold text-base flex justify-between items-center">
-          <span>Record Dataset</span>
+          <span>Grabar Dataset</span>
           <button
             className="ml-2 text-xl hover:bg-zinc-800 px-2 rounded-full"
-            title="Collapse"
+            title="Colapsar"
             onClick={onHide}
             onTouchEnd={onHide}
           >
@@ -204,11 +204,11 @@ const RecordControl = ({
 
         <div className="mb-4">
           <div className="flex items-center justify-between">
-            <span>Duration:</span>
+            <span>Duración:</span>
             <span className="font-mono">{formatTime(recordingTime)}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span>Frames:</span>
+            <span>Fotogramas:</span>
             <span className="font-mono">
               {recordingState === "replaying"
                 ? `${replayProgress}/${recordData.length}`
@@ -241,10 +241,10 @@ const RecordControl = ({
             }
           >
             {recordingState === "paused"
-              ? "Resume"
+              ? "Reanudar"
               : recordingState === "stopped"
-              ? "New"
-              : "Start"}
+              ? "Nuevo"
+              : "Iniciar"}
           </button>
 
           <button
@@ -256,7 +256,7 @@ const RecordControl = ({
             onClick={handlePause}
             disabled={recordingState !== "recording"}
           >
-            Pause
+            Pausar
           </button>
 
           <button
@@ -272,7 +272,7 @@ const RecordControl = ({
               recordingState === "replaying"
             }
           >
-            Stop
+            Detener
           </button>
 
           <div className="flex-1 flex items-center gap-2">
@@ -291,7 +291,7 @@ const RecordControl = ({
                 recordingState !== "stopped" && recordingState !== "replaying"
               }
             >
-              {recordingState === "replaying" ? "Stop Replay" : "Replay"}
+              {recordingState === "replaying" ? "Detener Reproducción" : "Reproducir"}
             </button>
             <ReplayHelpDialog />
           </div>

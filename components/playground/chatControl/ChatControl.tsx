@@ -43,7 +43,7 @@ export function ChatControl({
   const systemPrompt =
     getSystemPromptFromLocalStorage(robotName) ||
     configSystemPrompt || // <-- Use configSystemPrompt if present
-    `You can help control a robot by pressing keyboard keys. Use the keyPress tool to simulate key presses. Each key will be held down for 1 second by default. If the user describes roughly wanting to make it longer or shorter, adjust the duration accordingly.`;
+    `Puedes ayudar a controlar un robot presionando teclas del teclado. Usa la herramienta keyPress para simular pulsaciones de teclas. Cada tecla se mantendrá presionada durante 1 segundo por defecto. Si el usuario describe que quiere que sea más largo o más corto, ajusta la duración en consecuencia.`;
 
   // Create openai instance with current apiKey and baseURL
   const openai = createOpenAI({
@@ -68,7 +68,7 @@ export function ChatControl({
   }, [messages]);
 
   const handleCommand = async (command: string) => {
-    setMessages((prev) => [...prev, { sender: "User", text: command }]);
+    setMessages((prev) => [...prev, { sender: "Usuario", text: command }]);
     try {
       const result = await generateText({
         model: openai(model),
@@ -77,12 +77,12 @@ export function ChatControl({
         tools: {
           keyPress: tool({
             description:
-              "Press and hold a keyboard key for a specified duration (in milliseconds) to control the robot",
+              "Presiona y mantén una tecla del teclado durante una duración específica (en milisegundos) para controlar el robot",
             parameters: z.object({
               key: z
                 .string()
                 .describe(
-                  "The key to press (e.g., 'w', 'a', 's', 'd', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight')"
+                  "La tecla a presionar (ej: 'w', 'a', 's', 'd', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight')"
                 ),
               duration: z
                 .number()
@@ -91,7 +91,7 @@ export function ChatControl({
                 .max(5000)
                 .default(1000)
                 .describe(
-                  "How long to hold the key in milliseconds (default: 1000, min: 100, max: 5000)"
+                  "Cuánto tiempo mantener la tecla en milisegundos (por defecto: 1000, mín: 100, máx: 5000)"
                 ),
             }),
             execute: async ({
@@ -117,7 +117,7 @@ export function ChatControl({
                 bubbles: true,
               });
               window.dispatchEvent(keyupEvent);
-              return `Held key "${key.toUpperCase()}" for ${holdTime} ms`;
+              return `Tecla "${key.toUpperCase()}" mantenida durante ${holdTime} ms`;
             },
           }),
         },
@@ -125,14 +125,18 @@ export function ChatControl({
       let text = result.text.trim();
       const content = result.response?.messages[1]?.content;
       for (const element of content ?? []) {
-        text += `\n\n${element.result}`;
+        if (typeof element === 'object' && element !== null && 'result' in element) {
+          text += `\n\n${element.result}`;
+        } else if (typeof element === 'string') {
+          text += `\n\n${element}`;
+        }
       }
-      setMessages((prev) => [...prev, { sender: "AI", text }]);
+      setMessages((prev) => [...prev, { sender: "IA", text }]);
     } catch (error) {
       console.error("Error generating text:", error);
       setMessages((prev) => [
         ...prev,
-        { sender: "AI", text: "Error: Unable to process your request." },
+        { sender: "IA", text: "Error: No se pudo procesar tu solicitud." },
       ]);
     }
   };
@@ -158,26 +162,26 @@ export function ChatControl({
     <Rnd
       position={position}
       onDragStop={(_, d) => setPosition({ x: d.x, y: d.y })}
-      bounds="window"
+      bounds="parent"
       className="z-50"
       style={{ display: show ? undefined : "none" }}
     >
       <div ref={ref} className={"p-4 w-80 z-50 " + panelStyle}>
         <h4 className="border-b border-white/50  pb-2 font-bold mb-2 flex items-center justify-between">
-          <span>AI Control Robot</span>
+          <span>Control IA del Robot</span>
           <div className="flex gap-2">
             <button
               onClick={() => setShowSettings(true)}
               onTouchEnd={() => setShowSettings(true)}
               className="bg-zinc-700 hover:bg-zinc-600 text-white py-1 px-2 rounded text-sm"
             >
-              Settings
+              Configuración
             </button>
             <button
               onClick={onHide}
               onTouchEnd={onHide}
               className="text-xl hover:bg-zinc-800 px-2 rounded-full"
-              title="Collapse"
+              title="Colapsar"
             >
               ×
             </button>
@@ -188,10 +192,10 @@ export function ChatControl({
             <div
               key={idx}
               className={`mb-2 ${
-                msg.sender === "AI" ? "text-green-400" : "text-blue-400"
+                msg.sender === "IA" ? "text-green-400" : "text-blue-400"
               }`}
             >
-              <strong>{msg.sender}:</strong> {msg.text}
+              <strong>{msg.sender === "Usuario" ? "Usuario" : msg.sender}:</strong> {msg.text}
             </div>
           ))}
           <div ref={messagesEndRef} />
@@ -202,14 +206,14 @@ export function ChatControl({
               onClick={() => setMessages([])}
               className="text-xs bg-zinc-700 hover:bg-zinc-600 text-white px-2 py-1 rounded"
             >
-              Clear
+              Limpiar
             </button>
           </div>
         )}
         <div className="flex items-center space-x-2">
           <div className="relative flex items-center w-full">
             <button
-              onClick={() => alert("Camera support coming soon")}
+              onClick={() => alert("Soporte de cámara próximamente")}
               className="absolute left-0 bg-zinc-700 hover:bg-zinc-600 text-zinc-400 p-2 rounded"
             >
               <svg
@@ -229,7 +233,7 @@ export function ChatControl({
               onKeyPress={handleKeyPress}
               onKeyDown={(e) => e.stopPropagation()}
               onKeyUp={(e) => e.stopPropagation()}
-              placeholder="Type a command..."
+              placeholder="Escribe un comando..."
               className="flex-1 pl-10 p-2 rounded bg-zinc-700 text-white outline-none text-sm"
             />
           </div>

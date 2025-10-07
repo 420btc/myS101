@@ -132,7 +132,7 @@ export function SettingsModal({
         <div className="mb-2 text-xs text-zinc-300 text-right">
           {modelType === "OpenAI" && (
             <>
-              Get your OpenAI API key at
+              Obtén tu clave API de OpenAI en
               <a
                 href="https://platform.openai.com/api-keys"
                 target="_blank"
@@ -142,26 +142,26 @@ export function SettingsModal({
                 https://platform.openai.com/api-keys
               </a>
               .<br />
-              The API Key is stored only in your browser.
+              La clave API se almacena solo en tu navegador.
             </>
           )}
           {modelType === "Ollama" && (
             <>
-              Local Ollama does not require an API Key.
+              Ollama local no requiere una clave API.
               <br />
-              Make sure Ollama service is running locally.
+              Asegúrate de que el servicio Ollama esté ejecutándose localmente.
               <br />
-              Download Ollama at https://ollama.com/download
+              Descarga Ollama en https://ollama.com/download
             </>
           )}
           {modelType === "Custom" && (
-            <>Any OpenAI compatible LLM can be used here.</>
+            <>Cualquier LLM compatible con OpenAI puede usarse aquí.</>
           )}
         </div>
         {/* API Key */}
         <div className="flex items-center mb-4 ml-4">
           <label className="text-white font-medium flex items-center mr-2 whitespace-nowrap">
-            API Key:
+            Clave API:
           </label>
           <input
             type="text"
@@ -174,7 +174,7 @@ export function SettingsModal({
         {/* Base URL */}
         <div className="flex items-center mb-4 ml-4">
           <label className="text-white font-medium mr-2 whitespace-nowrap">
-            Base URL:
+            URL Base:
           </label>
           <input
             type="text"
@@ -182,7 +182,7 @@ export function SettingsModal({
             onChange={(e) => setBaseURLState(e.target.value)}
             placeholder={
               modelType === "OpenAI"
-                ? "Not required"
+                ? "No requerido"
                 : modelType === "Ollama"
                 ? "http://localhost:11434/v1"
                 : "http://your-custom-endpoint/v1"
@@ -193,7 +193,7 @@ export function SettingsModal({
         {/* Model */}
         <div className="flex items-center mb-4 ml-4">
           <label className="text-white font-medium mr-2 whitespace-nowrap">
-            Model:
+            Modelo:
           </label>
           <input
             type="text"
@@ -215,7 +215,7 @@ export function SettingsModal({
         <div>
           <div className="mb-2 flex items-center">
             <span className="block text-xl font-bold text-white">
-              System Prompt:
+              Prompt del Sistema:
             </span>
             {showUseDefaultPrompt && (
               <button
@@ -223,7 +223,7 @@ export function SettingsModal({
                 onClick={() => {
                   if (
                     window.confirm(
-                      "Your prompt will be replaced with the default prompt. Please copy your current prompt if you want to save it."
+                      "Tu prompt será reemplazado con el prompt predeterminado. Por favor copia tu prompt actual si quieres guardarlo."
                     )
                   ) {
                     setSystemPromptState(configSystemPrompt || "");
@@ -234,16 +234,16 @@ export function SettingsModal({
                     setShowUseDefaultPrompt(false);
                   }
                 }}
-                title="Use default prompt"
+                title="Usar prompt predeterminado"
               >
-                Use default prompt
+                Usar prompt predeterminado
               </button>
             )}
           </div>
           <textarea
             value={systemPrompt}
             onChange={(e) => setSystemPromptState(e.target.value)}
-            placeholder="System prompt for the AI model"
+            placeholder="Prompt del sistema para el modelo de IA"
             rows={6}
             className="w-full p-2 rounded bg-zinc-700 text-white mb-4 outline-none min-h-[80px] text-base"
           />
@@ -253,13 +253,13 @@ export function SettingsModal({
             onClick={onClose}
             className="bg-zinc-600 hover:bg-zinc-500 text-white px-4 py-2 rounded"
           >
-            Close
+            Cerrar
           </button>
           <button
             onClick={handleSave}
             className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded"
           >
-            Save
+            Guardar
           </button>
         </div>
       </div>

@@ -16,7 +16,7 @@ export function LeaderConnectionHelpDialog() {
       <DialogTrigger asChild>
         <button
           className="text-white bg-zinc-700 hover:bg-zinc-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold"
-          title="Help"
+          title="Ayuda"
         >
           ?
         </button>
@@ -24,7 +24,7 @@ export function LeaderConnectionHelpDialog() {
       <DialogContent className="sm:max-w-md bg-zinc-800 border-zinc-600 text-white">
         <DialogHeader>
           <DialogTitle className="text-white border-b border-zinc-600 pb-4">
-            Connecting to Leader Robot
+            Conectando al Robot Líder
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
@@ -40,23 +40,23 @@ export function LeaderConnectionHelpDialog() {
             </ul>
           </div> */}
           <div>
-            <div className="font-semibold mb-2">How it works:</div>
+            <div className="font-semibold mb-2">Cómo funciona:</div>
             <ul className="list-disc list-inside space-y-1 text-zinc-300">
               {/* <li>After connecting, move the leader robot manually</li>
               <li>The follower robot will mirror the movements</li> */}
               <li>
-                Servo positions are synchronized in real-time
+                Las posiciones de los servos se sincronizan en tiempo real
               </li>
             </ul>
           </div>
           <div>
             <div className="font-semibold mb-2 text-yellow-400">
-              Safety tips:
+              Consejos de seguridad:
             </div>
             <ul className="list-disc list-inside space-y-1 text-zinc-300">
-              <li>Move the leader robot slowly and smoothly</li>
-              <li>Avoid sudden or jerky movements</li>
-              <li>Disconnect if the follower robot behaves unexpectedly</li>
+              <li>Mueve el robot líder lenta y suavemente</li>
+              <li>Evita movimientos bruscos o repentinos</li>
+              <li>Desconecta si el robot seguidor se comporta inesperadamente</li>
             </ul>
           </div>
         </div>
@@ -67,7 +67,7 @@ export function LeaderConnectionHelpDialog() {
               variant="secondary"
               className="bg-zinc-700 hover:bg-zinc-600 text-white"
             >
-              Got it
+              Entendido
             </Button>
           </DialogClose>
         </DialogFooter>

@@ -26,25 +26,24 @@ export function NotificationDialog({
       <DialogContent className="sm:max-w-md bg-zinc-800 border-zinc-600 text-white">
         <DialogHeader>
           <DialogTitle className="text-white border-b border-zinc-600 pb-4">
-            Important Notification
+            Notificación Importante
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 text-zinc-300">
           <p>
-            When connecting to a real robot, we've switched from mirroring angle
-            changes to directly mirroring angles for easier and more precise
-            control.
+            Al conectar a un robot real, hemos cambiado de reflejar cambios de ángulo
+            a reflejar directamente los ángulos para un control más fácil y preciso.
           </p>
           <p className="text-red-400 font-semibold">
-            This means if you are using an older version of so-arm100, you need
-            to re-calibrate it following{" "}
+            Esto significa que si estás usando una versión anterior de so-arm100, necesitas
+            recalibrarlo siguiendo{" "}
             <Link
               href="https://huggingface.co/docs/lerobot/so101#calibrate"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-400 hover:underline"
             >
-              this guide
+              esta guía
             </Link>
             .
           </p>
@@ -55,7 +54,7 @@ export function NotificationDialog({
             onClick={onClose}
             className="bg-zinc-700 hover:bg-zinc-600 text-white w-full"
           >
-            Got it
+            Entendido
           </Button>
         </DialogFooter>
       </DialogContent>

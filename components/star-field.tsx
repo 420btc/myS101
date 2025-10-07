@@ -18,8 +18,8 @@ interface StarFieldProps {
 export function StarField({ blurAmount = 0 }: StarFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const starsRef = useRef<Star[]>([])
-  const animationRef = useRef<number>()
-  const lastWidthRef = useRef<number>()
+  const animationRef = useRef<number>(0)
+  const lastWidthRef = useRef<number>(0)
   const initialHeightRef = useRef<number>(0)
   const [isMobile, setIsMobile] = useState<boolean>(false)
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null)

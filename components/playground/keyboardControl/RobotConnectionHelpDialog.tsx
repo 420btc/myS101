@@ -16,7 +16,7 @@ export function RobotConnectionHelpDialog() {
       <DialogTrigger asChild>
         <button
           className="text-white bg-zinc-700 hover:bg-zinc-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold"
-          title="Help"
+          title="Ayuda"
         >
           ?
         </button>
@@ -24,7 +24,7 @@ export function RobotConnectionHelpDialog() {
       <DialogContent className="sm:max-w-md bg-zinc-800 border-zinc-600 text-white">
         <DialogHeader>
           <DialogTitle className="text-white border-b border-zinc-600 pb-4">
-            Connecting to Follower Robot
+            Conectando al Robot Seguidor
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
@@ -40,20 +40,20 @@ export function RobotConnectionHelpDialog() {
             </ul>
           </div> */}
                     <div>
-            <div className="font-semibold mb-2">How it works:</div>
+            <div className="font-semibold mb-2">Cómo funciona:</div>
             <ul className="list-disc list-inside space-y-1 text-zinc-300">
               {/* <li>The joints of the follower robot will mirror the positions of the virtual robot</li> */}
-              <li>Servo positions are mirrored in real-time</li>
+              <li>Las posiciones de los servos se reflejan en tiempo real</li>
             </ul>
           </div>
           <div>
             <div className="font-semibold mb-2 text-yellow-400">
-              Safety tips:
+              Consejos de seguridad:
             </div>
             <ul className="list-disc list-inside space-y-1 text-zinc-300">
-                <li>Do not move the follower robot by hand; torque is enabled and this may damage the servos.</li>
-              <li>Use slower speeds when first connecting</li>
-              <li>Disconnect immediately if unexpected behavior occurs</li>
+                <li>No muevas el robot seguidor manualmente; el torque está habilitado y esto puede dañar los servos.</li>
+              <li>Usa velocidades más lentas al conectar por primera vez</li>
+              <li>Desconecta inmediatamente si ocurre un comportamiento inesperado</li>
             </ul>
           </div>
         </div>
@@ -64,7 +64,7 @@ export function RobotConnectionHelpDialog() {
               variant="secondary"
               className="bg-zinc-700 hover:bg-zinc-600 text-white"
             >
-              Got it
+              Entendido
             </Button>
           </DialogClose>
         </DialogFooter>

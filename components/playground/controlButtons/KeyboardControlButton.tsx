@@ -14,7 +14,7 @@ export default function KeyboardControlButton({
     <GlassButton
       onClick={onToggleControlPanel}
       icon={<RiKeyboardFill size={24} />}
-      tooltip="Keyboard Control"
+      tooltip="Control de Teclado"
       pressed={showControlPanel}
     />
   );

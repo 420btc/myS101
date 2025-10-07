@@ -302,8 +302,8 @@ export function RevoluteJointsTable({
         <tbody>
           {joints.map((detail) => {
             // Use `joints` prop for rendering current state
-            const decreaseKey = keyboardControlMap[detail.servoId!]?.[1];
-            const increaseKey = keyboardControlMap[detail.servoId!]?.[0];
+            const decreaseKey = keyboardControlMap?.[detail.servoId!]?.[1];
+            const increaseKey = keyboardControlMap?.[detail.servoId!]?.[0];
             const isDecreaseActive =
               decreaseKey && pressedKeys.has(decreaseKey);
             const isIncreaseActive =

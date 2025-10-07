@@ -15,7 +15,9 @@ import KeyboardControlButton from "../playground/controlButtons/KeyboardControlB
 import ChatControlButton from "../playground/controlButtons/ChatControlButton";
 import LeaderControlButton from "../playground/controlButtons/LeaderControlButton";
 import RecordButton from "./controlButtons/RecordButton";
+import NotificationButton from "./controlButtons/NotificationButton";
 import RecordControl from "./recordControl/RecordControl";
+import { NotificationDialog } from "@/components/NotificationDialog";
 import {
   getPanelStateFromLocalStorage,
   setPanelStateToLocalStorage,
@@ -59,6 +61,18 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   const [showRecordControl, setShowRecordControl] = useState(() => {
     return getPanelStateFromLocalStorage("recordControl", robotName) ?? false;
   });
+  
+  // Notification states
+  const [showNotification, setShowNotification] = useState(false);
+  const [hasNew, setHasNew] = useState(false);
+  const NOTIFICATION_KEY = "bambot-update-2024-05";
+
+  useEffect(() => {
+    if (!localStorage.getItem(NOTIFICATION_KEY)) {
+      setHasNew(true);
+    }
+  }, []);
+
   const config = robotConfigMap[robotName];
 
   // Get leader robot servo IDs (exclude continuous joint types)
@@ -155,6 +169,19 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   const hideRecordControl = () => {
     setShowRecordControl(false);
     setPanelStateToLocalStorage("recordControl", false, robotName);
+  };
+
+  // Notification functions
+  const handleBellClick = () => {
+    setShowNotification(true);
+  };
+
+  const handleCloseNotification = () => {
+    setShowNotification(false);
+    if (hasNew) {
+      localStorage.setItem(NOTIFICATION_KEY, "true");
+      setHasNew(false);
+    }
   };
 
   return (
@@ -263,9 +290,19 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
               showControlPanel={showRecordControl}
               onToggleControlPanel={toggleRecordControl}
             />
+            <NotificationButton
+              onClick={handleBellClick}
+              hasNew={hasNew}
+            />
           </div>
         </div>
       </div>
+
+      <NotificationDialog
+        open={showNotification}
+        onOpenChange={setShowNotification}
+        onClose={handleCloseNotification}
+      />
     </>
   );
 }

@@ -318,8 +318,8 @@ function FeetechPageContent() {
         const position = await scsServoSDK.readPosition(id);
         foundCount++;
 
-        let mode = "ReadError";
-        let baudRateIndex = "ReadError";
+        let mode: string | number = "ReadError";
+        let baudRateIndex: string | number = "ReadError";
         try {
           mode = await scsServoSDK.readMode(id);
         } catch (modeErr: any) {

@@ -27,8 +27,8 @@ export function ContinuousJointsTable({
   joints,
   updateJointSpeed,
   updateJointsSpeed,
+  maxSpeed = 1000, // Use the prop with a default value
 }: ContinuousJointsTableProps) {
-  const maxSpeed = 1000; // Define max speed for the robot
   const [keyState, setKeyState] = useState<string | null>(null); // Track current key state
 
   const handleKeyDown = (event: KeyboardEvent) => {

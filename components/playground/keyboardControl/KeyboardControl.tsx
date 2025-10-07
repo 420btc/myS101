@@ -100,7 +100,7 @@ export function ControlPanel({
         setPosition({ x: d.x, y: d.y });
         setHasDragged(true);
       }}
-      bounds="window"
+      bounds="parent"
       className="z-50"
       style={{ display: show ? undefined : "none" }}
     >
@@ -109,12 +109,12 @@ export function ControlPanel({
         className={"max-h-[80vh] overflow-y-auto text-sm " + panelStyle}
       >
         <h3 className="mt-0 mb-4 border-b border-white/50  pb-1 font-bold text-base flex justify-between items-center">
-          <span>Joint Controls</span>
+          <span>Controles de Articulaciones</span>
           <button
             onClick={onHide} // 优先调用 onHide
             onTouchEnd={onHide}
             className="ml-2 text-xl hover:bg-zinc-800 px-2 rounded-full"
-            title="Collapse"
+            title="Colapsar"
           >
             ×
           </button>
@@ -137,6 +137,7 @@ export function ControlPanel({
             joints={continuousJoints}
             updateJointSpeed={updateJointSpeed}
             updateJointsSpeed={updateJointsSpeed} // Pass updateJointsSpeed to ContinuousJointsTable
+            maxSpeed={1000} // Add the required maxSpeed prop
           />
         )}
 
@@ -154,12 +155,12 @@ export function ControlPanel({
             }`}
           >
             {connectionStatus === "connecting"
-              ? "Connecting..."
+              ? "Conectando..."
               : connectionStatus === "disconnecting"
-              ? "Disconnecting..."
+              ? "Desconectando..."
               : isConnected
-              ? "Disconnect Robot"
-              : "Connect Follower Robot"}
+              ? "Desconectar Robot"
+              : "Conectar Robot Seguidor"}
           </button>
           <RobotConnectionHelpDialog />
         </div>
