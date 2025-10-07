@@ -16,6 +16,7 @@ import ChatControlButton from "../playground/controlButtons/ChatControlButton";
 import LeaderControlButton from "../playground/controlButtons/LeaderControlButton";
 import RecordButton from "./controlButtons/RecordButton";
 import NotificationButton from "./controlButtons/NotificationButton";
+import WebcamControlButton from "./controlButtons/WebcamControlButton";
 import RecordControl from "./recordControl/RecordControl";
 import { NotificationDialog } from "@/components/NotificationDialog";
 import {
@@ -32,6 +33,7 @@ import { GamepadControl } from "../GamepadControl";
 import { useGamepadRobotControl, GamepadControlConfig } from "@/hooks/useGamepadRobotControl";
 import { WASDControlButton } from "./controlButtons/WASDControlButton";
 import { WASDControl } from "./wasdControl/WASDControl";
+import WebcamView from "@/components/WebcamView";
 
 export type JointDetails = {
   name: string;
@@ -86,6 +88,7 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     // Siempre inicializar como false para que no esté abierto por defecto
     return false;
   });
+  const [showWebcam, setShowWebcam] = useState(false);
   
   // Gamepad configuration state
   const [gamepadConfig, setGamepadConfig] = useState<GamepadControlConfig>({
@@ -230,6 +233,10 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
       // setPanelStateToLocalStorage("wasdControl", newState, robotName);
       return newState;
     });
+  };
+
+  const toggleWebcam = () => {
+    setShowWebcam((prev) => !prev);
   };
 
   const hideControlPanel = () => {
@@ -409,6 +416,12 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
         jointDetails={jointDetails}
       />
 
+      {/* Webcam overlay */}
+      <WebcamView
+        show={showWebcam}
+        onHide={() => setShowWebcam(false)}
+      />
+
       <div className="absolute bottom-5 left-0 right-0">
         <div className="flex flex-col items-center gap-4">
           <div className="flex gap-2 max-w-md">
@@ -440,6 +453,10 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
             <WASDControlButton
               showControlPanel={showWASDControl}
               onToggleControlPanel={toggleWASDControl}
+            />
+            <WebcamControlButton
+              showWebcam={showWebcam}
+              onToggleWebcam={toggleWebcam}
             />
             <RecordButton
               showControlPanel={showRecordControl}
