@@ -56,7 +56,38 @@ export function ChatControl({
   const systemPrompt =
     getSystemPromptFromLocalStorage(robotName) ||
     configSystemPrompt || // <-- Use configSystemPrompt if present
-    `Puedes ayudar a controlar un robot presionando teclas del teclado. Usa la herramienta keyPress para simular pulsaciones de teclas. Cada tecla se mantendrá presionada durante 1 segundo por defecto. Si el usuario describe que quiere que sea más largo o más corto, ajusta la duración en consecuencia.`;
+    `Eres un asistente para controlar un brazo robótico so-arm100 mediante teclas específicas.
+
+REGLA CRÍTICA: NUNCA uses múltiples herramientas keyPress en una sola respuesta. 
+
+HERRAMIENTAS:
+1. keyPress: SOLO para UNA acción individual
+2. keySequence: OBLIGATORIO para 2 o más acciones
+
+INSTRUCCIONES ESTRICTAS:
+- Si detectas palabras como "y", "luego", "después", "primero", "segundo" → USA keySequence
+- Si hay múltiples movimientos de articulaciones → USA keySequence
+- Si hay múltiples direcciones → USA keySequence
+
+MAPEO DE TECLAS CORRECTO PARA SO-ARM100:
+- "q"/"1": Rotación base (izquierda/derecha)
+- "w"/"2": Pitch (arriba/abajo del hombro)
+- "e"/"3": Codo (flexión/extensión)
+- "r"/"4": Muñeca pitch (arriba/abajo de muñeca)
+- "t"/"5": Muñeca roll (rotación de muñeca)
+- "y"/"6": Garra (abrir/cerrar)
+
+EJEMPLOS CORRECTOS:
+❌ INCORRECTO: Usar keyPress("q") + keyPress("w") + keyPress("e")
+✅ CORRECTO: keySequence([{key:"q", duration:1000, pauseAfter:500}, {key:"w", duration:1000, pauseAfter:500}, {key:"e", duration:1000, pauseAfter:0}])
+
+INTERPRETACIÓN DE COMANDOS:
+- "derecha" → "q" (rotación base derecha)
+- "izquierda" → "1" (rotación base izquierda)  
+- "arriba" → "w" (pitch arriba)
+- "abajo" → "2" (pitch abajo)
+
+Duración por defecto: 1000ms. Pausa entre acciones: 500ms.`;
 
   // Create openai instance with current apiKey and baseURL
   const openai = createOpenAI({
@@ -81,8 +112,11 @@ export function ChatControl({
   }, [messages]);
 
   const handleCommand = async (command: string) => {
+    console.log(`[ChatControl] Procesando comando: "${command}"`);
     setMessages((prev) => [...prev, { sender: "Usuario", text: command }]);
+    
     try {
+      console.log(`[ChatControl] Llamando a generateText...`);
       const result = await generateText({
         model: openai(model),
         prompt: command,
@@ -114,11 +148,26 @@ export function ChatControl({
               duration?: number;
             }) => {
               const holdTime = duration ?? 1000;
+              console.log(`[AI KeyPress] Ejecutando tecla: ${key}, duración: ${holdTime}ms`);
+              
+              // Cancelar cualquier evento previo de la misma tecla
+              const existingKeyupEvent = new KeyboardEvent("keyup", {
+                key,
+                bubbles: true,
+                cancelable: true,
+              });
+              document.dispatchEvent(existingKeyupEvent);
+              
+              // Pequeña pausa antes del keydown
+              await new Promise((resolve) => setTimeout(resolve, 10));
+              
               const keydownEvent = new KeyboardEvent("keydown", {
                 key,
                 bubbles: true,
+                cancelable: true,
               });
-              window.dispatchEvent(keydownEvent);
+              console.log(`[AI KeyPress] Enviando keydown para: ${key}`);
+              document.dispatchEvent(keydownEvent);
 
               // Wait for the specified duration
               await new Promise((resolve) => setTimeout(resolve, holdTime));
@@ -127,8 +176,12 @@ export function ChatControl({
               const keyupEvent = new KeyboardEvent("keyup", {
                 key,
                 bubbles: true,
+                cancelable: true,
               });
-              window.dispatchEvent(keyupEvent);
+              console.log(`[AI KeyPress] Enviando keyup para: ${key}`);
+              document.dispatchEvent(keyupEvent);
+              
+              console.log(`[AI KeyPress] Completado: ${key} durante ${holdTime}ms`);
               return `Tecla "${key.toUpperCase()}" mantenida durante ${holdTime} ms`;
             },
           }),
@@ -177,17 +230,34 @@ export function ChatControl({
                 pauseAfter?: number;
               }>;
             }) => {
+              console.log(`[AI KeySequence] Iniciando secuencia de ${sequence.length} teclas`);
               let results: string[] = [];
               
               for (let i = 0; i < sequence.length; i++) {
                 const { key, duration, pauseAfter = 100 } = sequence[i];
                 
+                console.log(`[AI KeySequence] Paso ${i + 1}/${sequence.length}: ${key} por ${duration}ms`);
+                
                 // Execute keypress
                 const keydownEvent = new KeyboardEvent("keydown", {
                   key,
                   bubbles: true,
+                  cancelable: true,
                 });
-                window.dispatchEvent(keydownEvent);
+                console.log(`[AI KeySequence] Enviando keydown para: ${key}`);
+                
+                // Cancelar cualquier evento previo de la misma tecla
+                const existingKeyupEvent = new KeyboardEvent("keyup", {
+                  key,
+                  bubbles: true,
+                  cancelable: true,
+                });
+                document.dispatchEvent(existingKeyupEvent);
+                
+                // Pequeña pausa antes del keydown
+                await new Promise((resolve) => setTimeout(resolve, 10));
+                
+                document.dispatchEvent(keydownEvent);
 
                 // Wait for the specified duration
                 await new Promise((resolve) => setTimeout(resolve, duration));
@@ -196,34 +266,51 @@ export function ChatControl({
                 const keyupEvent = new KeyboardEvent("keyup", {
                   key,
                   bubbles: true,
+                  cancelable: true,
                 });
-                window.dispatchEvent(keyupEvent);
+                console.log(`[AI KeySequence] Enviando keyup para: ${key}`);
+                document.dispatchEvent(keyupEvent);
                 
                 results.push(`${i + 1}. Tecla "${key.toUpperCase()}" mantenida durante ${duration} ms`);
                 
                 // Pause between keystrokes (except for the last one)
                 if (i < sequence.length - 1 && pauseAfter > 0) {
+                  console.log(`[AI KeySequence] Pausa de ${pauseAfter}ms antes del siguiente paso`);
                   await new Promise((resolve) => setTimeout(resolve, pauseAfter));
+                } else if (i < sequence.length - 1) {
+                  // Pausa mínima entre teclas para evitar conflictos
+                  console.log(`[AI KeySequence] Pausa mínima de 50ms antes del siguiente paso`);
+                  await new Promise((resolve) => setTimeout(resolve, 50));
                 }
               }
               
+              console.log(`[AI KeySequence] Secuencia completada exitosamente`);
               return `Secuencia ejecutada:\n${results.join('\n')}`;
             },
           }),
         },
       });
+      
+      console.log(`[ChatControl] generateText completado. Procesando respuesta...`);
       let text = result.text.trim();
       const content = result.response?.messages[1]?.content;
+      
+      console.log(`[ChatControl] Contenido de respuesta:`, content);
+      
       for (const element of content ?? []) {
         if (typeof element === 'object' && element !== null && 'result' in element) {
+          console.log(`[ChatControl] Agregando resultado de herramienta:`, element.result);
           text += `\n\n${element.result}`;
         } else if (typeof element === 'string') {
+          console.log(`[ChatControl] Agregando texto:`, element);
           text += `\n\n${element}`;
         }
       }
+      
+      console.log(`[ChatControl] Respuesta final procesada:`, text);
       setMessages((prev) => [...prev, { sender: "IA", text }]);
     } catch (error) {
-      console.error("Error generating text:", error);
+      console.error("[ChatControl] Error generating text:", error);
       setMessages((prev) => [
         ...prev,
         { sender: "IA", text: "Error: No se pudo procesar tu solicitud." },
