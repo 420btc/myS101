@@ -7,6 +7,7 @@ import {
 } from "../../../hooks/useRobotControl";
 import { radiansToDegrees } from "../../../lib/utils";
 import { RobotConfig } from "@/config/robotConfig";
+import { translateJointName, translateCompoundMovement } from "@/lib/jointTranslations";
 
 type RevoluteJointsTableProps = {
   joints: JointState[];
@@ -313,7 +314,7 @@ export function RevoluteJointsTable({
               <tr key={detail.servoId}>
                 <td className="">
                   {/* <span className="text-zinc-600">{detail.servoId}</span>{" "} */}
-                  {detail.name}
+                  {translateJointName(detail.name)}
                 </td>
 
                 <td className="pr-2 text-center w-16">
@@ -385,7 +386,7 @@ export function RevoluteJointsTable({
       {/* Display compoundMovements if present */}
       {compoundMovements && compoundMovements.length > 0 && (
         <div className="mt-4">
-          <div className="font-bold mb-2">Compound Movements</div>
+          <div className="font-bold mb-2">{translateCompoundMovement("Compound Movements")}</div>
           <table className="table-auto w-full text-left text-sm">
             <tbody>
               {compoundMovements.map((cm, idx) => {
@@ -397,7 +398,7 @@ export function RevoluteJointsTable({
                   increaseKey && pressedKeys.has(increaseKey);
                 return (
                   <tr key={idx}>
-                    <td className="font-semibold pr-2 align-top">{cm.name}</td>
+                    <td className="font-semibold pr-2 align-top">{translateCompoundMovement(cm.name)}</td>
                     <td>
                       {cm.keys && cm.keys.length > 0 && (
                         <span className="space-x-1 flex flex-row">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { servoPositionToAngle } from "@/lib/utils";
 import { Rnd } from "react-rnd";
+import { translateJointName } from "@/lib/jointTranslations";
 import useMeasure from "react-use-measure";
 import { panelStyle } from "@/components/playground/panelStyle";
 import { LeaderConnectionHelpDialog } from "./LeaderConnectionHelpDialog";
@@ -142,7 +143,7 @@ const LeaderControl = ({
                 <tbody>
                   {revoluteJoints.map((j) => (
                     <tr key={j.servoId}>
-                      <td className="py-1">{j.name}</td>
+                      <td className="py-1">{translateJointName(j.name || "")}</td>
                       <td className="py-1  text-center ">
                         {(() => {
                           const angle =
