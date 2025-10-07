@@ -171,24 +171,13 @@ export function GamepadControl({
                     <div>
                       <div>No hay gamepad conectado</div>
                       <div className="mt-1 text-yellow-400 space-y-2">
-                        <div><strong>Para conectar tu Xbox Controller:</strong></div>
-                        <div>1. <strong>Conecta por USB:</strong> Usa un cable USB-C o micro-USB</div>
-                        <div>2. <strong>Conecta por Bluetooth:</strong></div>
-                        <div className="ml-4 text-xs space-y-1">
-                          <div>• Mantén presionado el botón Xbox + botón de sincronización</div>
-                          <div>• Ve a Configuración → Bluetooth en Windows</div>
-                          <div>• Selecciona "Xbox Wireless Controller"</div>
-                        </div>
-                        <div>3. <strong>Presiona cualquier botón</strong> en el mando después de conectar</div>
-                        <div>4. <strong>Abre la consola del navegador</strong> (F12) para ver logs de detección</div>
-                        <div className="text-orange-400 mt-2">
-                          <strong>Nota:</strong> Si aparecen 4 gamepads como "null", el navegador detecta slots vacíos pero no hay dispositivos conectados físicamente.
-                        </div>
+                        <div><strong>Receptor inalámbrico Xbox 360 no detectado</strong></div>
                         <div className="bg-gray-800/50 rounded p-2 mt-2">
                           <div className="text-xs text-gray-400 mb-1">Información de depuración:</div>
                           <div className="text-xs text-gray-300">
                             <div>Slots detectados: {navigator.getGamepads ? navigator.getGamepads().length : 'API no disponible'}</div>
                             <div>Gamepads activos: {navigator.getGamepads ? navigator.getGamepads().filter(g => g !== null).length : 0}</div>
+                            <div>Navegador: {navigator.userAgent.includes('Chrome') ? 'Chrome' : navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Otro'}</div>
                           </div>
                         </div>
                       </div>

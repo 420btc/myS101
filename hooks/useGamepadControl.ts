@@ -80,7 +80,7 @@ export function useGamepadControl(deadZone: number = 0.15) {
   }, []);
 
   // Función para detectar y conectar gamepads
-  const detectGamepads = useCallback(() => {
+  const detectGamepads = useCallback((forceLog = false) => {
     if (!navigator.getGamepads) {
       console.warn('Gamepad API no está disponible en este navegador');
       return;
@@ -90,29 +90,24 @@ export function useGamepadControl(deadZone: number = 0.15) {
     let connectedGamepad: Gamepad | null = null;
     let gamepadIndex: number | null = null;
 
-    // Log para depuración - mostrar todos los gamepads detectados
-    console.log('Gamepads detectados:', gamepads.length);
-    console.log('Tipo de gamepads array:', typeof gamepads, Array.isArray(gamepads));
-    
-    for (let i = 0; i < gamepads.length; i++) {
-      const gamepad = gamepads[i];
-      console.log(`Gamepad ${i}:`, gamepad);
+    // Solo hacer logs si se fuerza (detección manual) o si hay cambios
+    if (forceLog) {
+      console.log('Gamepads detectados:', gamepads.length);
       
-      if (gamepad && gamepad.id) {
-        console.log(`Gamepad ${i} - Detalles:`, {
-          id: gamepad.id,
-          connected: gamepad.connected,
-          buttons: gamepad.buttons.length,
-          axes: gamepad.axes.length,
-          mapping: gamepad.mapping,
-          timestamp: gamepad.timestamp
-        });
-      } else if (gamepad === null) {
-        console.log(`Gamepad ${i}: null (slot vacío)`);
-      } else if (gamepad === undefined) {
-        console.log(`Gamepad ${i}: undefined`);
-      } else {
-        console.log(`Gamepad ${i}: valor inesperado`, typeof gamepad, gamepad);
+      for (let i = 0; i < gamepads.length; i++) {
+        const gamepad = gamepads[i];
+        
+        if (gamepad && gamepad.id) {
+          console.log(`Gamepad ${i} conectado:`, gamepad.id);
+        } else if (gamepad === null) {
+          console.log(`Gamepad ${i}: null`);
+        }
+      }
+      
+      // Información para receptores inalámbricos
+      const nullSlots = Array.from(gamepads).filter(g => g === null).length;
+      if (nullSlots === gamepads.length && gamepads.length > 0) {
+        console.log('Todos los slots vacíos - receptor inalámbrico sin sincronizar');
       }
     }
 
@@ -120,7 +115,7 @@ export function useGamepadControl(deadZone: number = 0.15) {
     for (let i = 0; i < gamepads.length; i++) {
       const gamepad = gamepads[i];
       if (gamepad && gamepad.connected && gamepad.id) {
-        console.log(`Gamepad conectado encontrado: ${gamepad.id}`);
+        if (forceLog) console.log(`Gamepad conectado encontrado: ${gamepad.id}`);
         // Priorizar controladores Xbox
         if (gamepad.id.toLowerCase().includes('xbox') || 
             gamepad.id.toLowerCase().includes('360') ||
@@ -128,19 +123,19 @@ export function useGamepadControl(deadZone: number = 0.15) {
             gamepad.id.toLowerCase().includes('microsoft')) {
           connectedGamepad = gamepad;
           gamepadIndex = i;
-          console.log(`Xbox controller seleccionado: ${gamepad.id}`);
+          if (forceLog) console.log(`Xbox controller seleccionado: ${gamepad.id}`);
           break;
         } else if (!connectedGamepad) {
           // Usar cualquier gamepad si no hay Xbox disponible
           connectedGamepad = gamepad;
           gamepadIndex = i;
-          console.log(`Gamepad genérico seleccionado: ${gamepad.id}`);
+          if (forceLog) console.log(`Gamepad genérico seleccionado: ${gamepad.id}`);
         }
       }
     }
 
     if (connectedGamepad && gamepadIndex !== null) {
-      console.log(`Gamepad activo: ${connectedGamepad.id} (índice: ${gamepadIndex})`);
+      if (forceLog) console.log(`Gamepad activo: ${connectedGamepad.id} (índice: ${gamepadIndex})`);
       // Actualizar estado del gamepad
       setGamepadState({
         connected: true,
@@ -175,8 +170,7 @@ export function useGamepadControl(deadZone: number = 0.15) {
         dPadRight: connectedGamepad.buttons[13]?.pressed || false,
       });
     } else {
-      // No hay gamepad conectado
-      console.log('No se encontró ningún gamepad conectado');
+      // No hay gamepad conectado - solo log en detección manual
       setGamepadState({
         connected: false,
         gamepadIndex: null,
@@ -198,24 +192,33 @@ export function useGamepadControl(deadZone: number = 0.15) {
     const handleGamepadConnected = (event: GamepadEvent) => {
       if (event.gamepad && event.gamepad.id) {
         console.log(`Gamepad conectado: ${event.gamepad.id}`);
-      } else {
-        console.log('Gamepad conectado pero sin ID válido');
       }
-      detectGamepads();
+      // Forzar detección inmediata
+      setTimeout(() => detectGamepads(), 100);
     };
 
     const handleGamepadDisconnected = (event: GamepadEvent) => {
       if (event.gamepad && event.gamepad.id) {
         console.log(`Gamepad desconectado: ${event.gamepad.id}`);
-      } else {
-        console.log('Gamepad desconectado pero sin ID válido');
       }
-      detectGamepads();
+      // Forzar detección inmediata
+      setTimeout(() => detectGamepads(), 100);
+    };
+
+    // Función para detectar gamepads de forma periódica (útil para receptores inalámbricos)
+    const periodicDetection = () => {
+      // Solo hacer detección periódica si no hay gamepads conectados
+      if (!gamepadState.connected) {
+        detectGamepads();
+      }
     };
 
     // Agregar event listeners
     window.addEventListener('gamepadconnected', handleGamepadConnected);
     window.addEventListener('gamepaddisconnected', handleGamepadDisconnected);
+
+    // Detección periódica cada 10 segundos para receptores inalámbricos
+    const periodicInterval = setInterval(periodicDetection, 10000);
 
     // Iniciar el loop de actualización
     updateGamepad();
@@ -224,11 +227,12 @@ export function useGamepadControl(deadZone: number = 0.15) {
     return () => {
       window.removeEventListener('gamepadconnected', handleGamepadConnected);
       window.removeEventListener('gamepaddisconnected', handleGamepadDisconnected);
+      clearInterval(periodicInterval);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [detectGamepads, updateGamepad]);
+  }, [detectGamepads, updateGamepad, gamepadState.connected]);
 
   // Función para obtener información del gamepad
   const getGamepadInfo = useCallback(() => {
@@ -253,6 +257,6 @@ export function useGamepadControl(deadZone: number = 0.15) {
     gamepadMapping,
     getGamepadInfo,
     isConnected: gamepadState.connected,
-    forceDetection: detectGamepads,
+    forceDetection: () => detectGamepads(true),
   };
 }
