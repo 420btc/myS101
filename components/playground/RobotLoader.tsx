@@ -235,6 +235,68 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     });
   };
 
+  // Función para controlar el robot basado en detección facial
+  const handleRobotControl = (direction: 'left' | 'right' | 'center') => {
+    console.log('🎯 handleRobotControl llamado con dirección:', direction);
+    console.log('🔌 Robot conectado:', isConnected);
+    console.log('🤖 Nombre del robot:', robotName);
+    
+    if (!isConnected) {
+      console.log('❌ Robot no conectado, no se puede controlar');
+      return;
+    }
+
+    // Obtener las teclas de control según el tipo de robot
+    const controlKeys = keyboardControlMap;
+    
+    // Para robots con rotación de base (so-arm100, sts3215)
+    if (robotName === 'so-arm100' || robotName === 'sts3215') {
+      if (direction === 'left') {
+        console.log('⬅️ Enviando comando izquierda (tecla "1") para robot brazo');
+        // Simular presión de tecla "1" para rotación izquierda
+        const keyEvent = new KeyboardEvent('keydown', { key: '1', bubbles: true });
+        document.dispatchEvent(keyEvent);
+        setTimeout(() => {
+          const keyUpEvent = new KeyboardEvent('keyup', { key: '1', bubbles: true });
+          document.dispatchEvent(keyUpEvent);
+        }, 500);
+      } else if (direction === 'right') {
+        console.log('➡️ Enviando comando derecha (tecla "q") para robot brazo');
+        // Simular presión de tecla "q" para rotación derecha
+        const keyEvent = new KeyboardEvent('keydown', { key: 'q', bubbles: true });
+        document.dispatchEvent(keyEvent);
+        setTimeout(() => {
+          const keyUpEvent = new KeyboardEvent('keyup', { key: 'q', bubbles: true });
+          document.dispatchEvent(keyUpEvent);
+        }, 500);
+      }
+    }
+    // Para robots móviles (bambot-b0-base, unitree-go2, unitree-g1)
+    else if (robotName === 'bambot-b0-base' || robotName === 'unitree-go2' || robotName === 'unitree-g1') {
+      if (direction === 'left') {
+        console.log('⬅️ Enviando comando izquierda (ArrowLeft) para robot móvil');
+        // Usar ArrowLeft para girar izquierda
+        const keyEvent = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true });
+        document.dispatchEvent(keyEvent);
+        setTimeout(() => {
+          const keyUpEvent = new KeyboardEvent('keyup', { key: 'ArrowLeft', bubbles: true });
+          document.dispatchEvent(keyUpEvent);
+        }, 500);
+      } else if (direction === 'right') {
+        console.log('➡️ Enviando comando derecha (ArrowRight) para robot móvil');
+        // Usar ArrowRight para girar derecha
+        const keyEvent = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+        document.dispatchEvent(keyEvent);
+        setTimeout(() => {
+          const keyUpEvent = new KeyboardEvent('keyup', { key: 'ArrowRight', bubbles: true });
+          document.dispatchEvent(keyUpEvent);
+        }, 500);
+      }
+    } else {
+      console.log('⚠️ Tipo de robot no reconocido para control facial:', robotName);
+    }
+  };
+
   const toggleWebcam = () => {
     setShowWebcam((prev) => !prev);
   };
@@ -420,6 +482,7 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
       <WebcamView
         show={showWebcam}
         onHide={() => setShowWebcam(false)}
+        onRobotControl={handleRobotControl}
       />
 
       <div className="absolute bottom-5 left-0 right-0">
