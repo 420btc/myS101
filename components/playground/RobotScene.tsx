@@ -26,6 +26,7 @@ type RobotSceneProps = {
   orbitTarget?: [number, number, number];
   setJointDetails: (details: JointDetails[]) => void;
   jointStates: JointState[];
+  robotColor?: string;
 };
 
 export function RobotScene({
@@ -34,6 +35,7 @@ export function RobotScene({
   orbitTarget,
   setJointDetails,
   jointStates,
+  robotColor,
 }: RobotSceneProps) {
   const { scene } = useThree();
   const robotRef = useRef<URDFRobot | null>(null);
@@ -60,7 +62,7 @@ export function RobotScene({
               )
               .map((joint) => ({
                 name: joint.name,
-                servoId: robotConfigMap[robotName].jointNameIdMap[joint.name],
+                servoId: robotConfigMap[robotName]?.jointNameIdMap?.[joint.name] ?? 0,
                 limit: {
                   lower:
                     joint.limit.lower === undefined
@@ -77,7 +79,9 @@ export function RobotScene({
         setJointDetails(details);
 
         robot.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / -2);
-        robot.traverse((c) => (c.castShadow = true));
+        robot.traverse((c) => {
+          c.castShadow = true;
+        });
         robot.updateMatrixWorld(true);
         const scale = 15;
         robot.scale.set(scale, scale, scale);
@@ -87,6 +91,26 @@ export function RobotScene({
       (error) => console.error("Error loading URDF:", error)
     );
   }, [robotName, urdfUrl, setJointDetails]);
+
+  // useEffect separado para manejar cambios de color
+  useEffect(() => {
+    if (robotRef.current && robotColor) {
+      robotRef.current.traverse((c) => {
+        if (c instanceof THREE.Mesh && c.material) {
+          const material = c.material as THREE.MeshStandardMaterial;
+          // Buscar materiales verdes por nombre o por valores RGB específicos
+          if (material.name === 'green' || 
+              (material.color && 
+               Math.abs(material.color.r - 0.06) < 0.01 && 
+               Math.abs(material.color.g - 0.4) < 0.01 && 
+               Math.abs(material.color.b - 0.1) < 0.01)) {
+            material.color.setHex(parseInt(robotColor.replace('#', '0x')));
+            material.needsUpdate = true;
+          }
+        }
+      });
+    }
+  }, [robotColor]);
 
   useFrame((state, delta) => {
     if (robotRef.current && robotRef.current.joints) {

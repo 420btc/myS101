@@ -25,6 +25,8 @@ import {
 import { SceneBackground } from "./SceneBackground";
 import BackgroundControlButton from "./controlButtons/BackgroundControlButton";
 import { BackgroundControl } from "./backgroundControl/BackgroundControl";
+import RobotColorControlButton from "./controlButtons/RobotColorControlButton";
+import { RobotColorControl } from "./robotColorControl/RobotColorControl";
 import GamepadControlButton from "./controlButtons/GamepadControlButton";
 import { GamepadControl } from "../GamepadControl";
 import { useGamepadRobotControl, GamepadControlConfig } from "@/hooks/useGamepadRobotControl";
@@ -55,6 +57,7 @@ function Loader() {
 export default function RobotLoader({ robotName }: RobotLoaderProps) {
   const [jointDetails, setJointDetails] = useState<JointDetails[]>([]);
   const [backgroundColor, setBackgroundColor] = useState<number>(0x263238);
+  const [robotColor, setRobotColor] = useState<string>("#0a6619"); // Color verde original
   const [showControlPanel, setShowControlPanel] = useState(() => {
     const stored = getPanelStateFromLocalStorage("keyboardControl", robotName);
     return stored !== null ? stored : false;
@@ -73,6 +76,9 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   });
   const [showGamepadControl, setShowGamepadControl] = useState(() => {
     return getPanelStateFromLocalStorage("gamepadControl", robotName) ?? false;
+  });
+  const [showRobotColorControl, setShowRobotColorControl] = useState(() => {
+    return getPanelStateFromLocalStorage("robotColorControl", robotName) ?? false;
   });
   
   // Gamepad configuration state
@@ -202,6 +208,14 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     });
   };
 
+  const toggleRobotColorControl = () => {
+    setShowRobotColorControl((prev) => {
+      const newState = !prev;
+      setPanelStateToLocalStorage("robotColorControl", newState, robotName);
+      return newState;
+    });
+  };
+
   const hideControlPanel = () => {
     setShowControlPanel(false);
     setPanelStateToLocalStorage("keyboardControl", false, robotName);
@@ -230,6 +244,11 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   const hideGamepadControl = () => {
     setShowGamepadControl(false);
     setPanelStateToLocalStorage("gamepadControl", false, robotName);
+  };
+
+  const hideRobotColorControl = () => {
+    setShowRobotColorControl(false);
+    setPanelStateToLocalStorage("robotColorControl", false, robotName);
   };
 
   // Notification functions
@@ -262,6 +281,7 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
             orbitTarget={orbitTarget}
             setJointDetails={setJointDetails}
             jointStates={jointStates}
+            robotColor={robotColor}
           />
         </Suspense>
       </Canvas>
@@ -338,6 +358,14 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
         onColorChange={setBackgroundColor}
       />
 
+      {/* Robot Color Control overlay */}
+      <RobotColorControl
+        show={showRobotColorControl}
+        onHide={hideRobotColorControl}
+        currentColor={robotColor}
+        onColorChange={setRobotColor}
+      />
+
       {/* Gamepad Control overlay */}
       <GamepadControl
         show={showGamepadControl}
@@ -367,6 +395,10 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
             <BackgroundControlButton
               showControlPanel={showBackgroundControl}
               onToggleControlPanel={toggleBackgroundControl}
+            />
+            <RobotColorControlButton
+              showControlPanel={showRobotColorControl}
+              onToggleControlPanel={toggleRobotColorControl}
             />
             <GamepadControlButton
               showControlPanel={showGamepadControl}
