@@ -25,6 +25,9 @@ import {
 import { SceneBackground } from "./SceneBackground";
 import BackgroundControlButton from "./controlButtons/BackgroundControlButton";
 import { BackgroundControl } from "./backgroundControl/BackgroundControl";
+import GamepadControlButton from "./controlButtons/GamepadControlButton";
+import { GamepadControl } from "../GamepadControl";
+import { useGamepadRobotControl, GamepadControlConfig } from "@/hooks/useGamepadRobotControl";
 
 export type JointDetails = {
   name: string;
@@ -67,6 +70,22 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   });
   const [showBackgroundControl, setShowBackgroundControl] = useState(() => {
     return getPanelStateFromLocalStorage("backgroundControl", robotName) ?? false;
+  });
+  const [showGamepadControl, setShowGamepadControl] = useState(() => {
+    return getPanelStateFromLocalStorage("gamepadControl", robotName) ?? false;
+  });
+  
+  // Gamepad configuration state
+  const [gamepadConfig, setGamepadConfig] = useState<GamepadControlConfig>({
+    enabled: true,
+    sensitivity: 1.0,
+    deadZone: 0.15,
+    updateRate: 50,
+    speedModifier: {
+      slow: 0.3,
+      normal: 1.0,
+      fast: 1.8,
+    },
   });
   
   // Notification states
@@ -121,6 +140,15 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     clearRecordData,
   } = useRobotControl(jointDetails, urdfInitJointAngles);
 
+  // Initialize gamepad robot control
+  const gamepadControl = useGamepadRobotControl(
+    updateJointDegrees,
+    updateJointsSpeed,
+    isConnected,
+    gamepadConfig,
+    updateJointsDegrees
+  );
+
   useEffect(() => {
     updateJointDetails(jointDetails);
   }, [jointDetails, updateJointDetails]);
@@ -166,6 +194,14 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     });
   };
 
+  const toggleGamepadControl = () => {
+    setShowGamepadControl((prev) => {
+      const newState = !prev;
+      setPanelStateToLocalStorage("gamepadControl", newState, robotName);
+      return newState;
+    });
+  };
+
   const hideControlPanel = () => {
     setShowControlPanel(false);
     setPanelStateToLocalStorage("keyboardControl", false, robotName);
@@ -189,6 +225,11 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   const hideBackgroundControl = () => {
     setShowBackgroundControl(false);
     setPanelStateToLocalStorage("backgroundControl", false, robotName);
+  };
+
+  const hideGamepadControl = () => {
+    setShowGamepadControl(false);
+    setPanelStateToLocalStorage("gamepadControl", false, robotName);
   };
 
   // Notification functions
@@ -297,6 +338,17 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
         onColorChange={setBackgroundColor}
       />
 
+      {/* Gamepad Control overlay */}
+      <GamepadControl
+        show={showGamepadControl}
+        onHide={hideGamepadControl}
+        isConnected={gamepadControl.isGamepadConnected}
+        config={gamepadConfig}
+        onConfigChange={(newConfig) => setGamepadConfig(prev => ({ ...prev, ...newConfig }))}
+        currentGamepadState={gamepadControl.gamepadState}
+        onForceDetection={gamepadControl.forceDetection}
+      />
+
       <div className="absolute bottom-5 left-0 right-0">
         <div className="flex flex-col items-center gap-4">
           <div className="flex gap-2 max-w-md">
@@ -315,6 +367,11 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
             <BackgroundControlButton
               showControlPanel={showBackgroundControl}
               onToggleControlPanel={toggleBackgroundControl}
+            />
+            <GamepadControlButton
+              showControlPanel={showGamepadControl}
+              onToggleControlPanel={toggleGamepadControl}
+              isConnected={gamepadControl.isGamepadConnected}
             />
             <RecordButton
               showControlPanel={showRecordControl}

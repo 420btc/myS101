@@ -13,12 +13,31 @@ type RobotPanelSettings = {
 };
 
 function getAllPanelSettings(): RobotPanelSettings {
-  const stored = localStorage.getItem(PANEL_SETTINGS_KEY);
-  return stored ? JSON.parse(stored) : {};
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return {};
+  }
+  
+  try {
+    const stored = localStorage.getItem(PANEL_SETTINGS_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch (error) {
+    console.warn('Error reading panel settings from localStorage:', error);
+    return {};
+  }
 }
 
 function saveAllPanelSettings(settings: RobotPanelSettings) {
-  localStorage.setItem(PANEL_SETTINGS_KEY, JSON.stringify(settings));
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return;
+  }
+  
+  try {
+    localStorage.setItem(PANEL_SETTINGS_KEY, JSON.stringify(settings));
+  } catch (error) {
+    console.warn('Error saving panel settings to localStorage:', error);
+  }
 }
 
 export function getPanelStateFromLocalStorage(
