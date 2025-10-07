@@ -17,9 +17,10 @@ type RevoluteJointsTableProps = {
   compoundMovements?: RobotConfig["compoundMovements"]; // Use type from robotConfig
 };
 
-// Define constants for interval and step size
-const KEY_UPDATE_INTERVAL_MS = 3;
-const KEY_UPDATE_STEP_DEGREES = 0.15;
+// Define constants for interval and step size - Optimized for smooth movement
+const KEY_UPDATE_INTERVAL_MS = 16; // ~60fps for smooth animation
+const KEY_UPDATE_STEP_DEGREES = 0.2; // Velocidad muy reducida para control ultra preciso
+const SAFETY_MARGIN_DEGREES = 2.0; // Margen de seguridad antes de los límites extremos
 
 const formatDegrees = (degrees?: number | "N/A" | "error") => {
   if (degrees === "error") {
@@ -94,9 +95,24 @@ export function RevoluteJointsTable({
 
   // Effect for handling continuous updates when keys are pressed
   useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
+    let animationId: number | null = null;
+    let lastUpdateTime = 0;
+    const targetFPS = 60;
+    const frameInterval = 1000 / targetFPS;
 
     const updateJointsBasedOnKeys = () => {
+      const currentTime = performance.now();
+      
+      // Only update if enough time has passed for target FPS
+      if (currentTime - lastUpdateTime < frameInterval) {
+        if (pressedKeys.size > 0) {
+          animationId = requestAnimationFrame(updateJointsBasedOnKeys);
+        }
+        return;
+      }
+      
+      lastUpdateTime = currentTime;
+      
       const currentJoints = jointsRef.current;
       const currentControlMap = keyboardControlMapRef.current || {};
       const currentPressedKeys = pressedKeys;
@@ -124,7 +140,22 @@ export function RevoluteJointsTable({
           const upperLimit = Math.round(
             radiansToDegrees(joint.limit?.upper ?? Infinity)
           );
-          newValue = Math.max(lowerLimit, Math.min(upperLimit, newValue));
+          
+          // LÍMITES DE SEGURIDAD ESTRICTOS - Evitar salto automático entre extremos
+          // Solo aplicar límites si están definidos y son finitos
+          if (isFinite(lowerLimit) && isFinite(upperLimit)) {
+            // Aplicar barreras de seguridad con margen antes de los límites extremos
+            const safeLowerLimit = lowerLimit + SAFETY_MARGIN_DEGREES;
+            const safeUpperLimit = upperLimit - SAFETY_MARGIN_DEGREES;
+            
+            // Si el nuevo valor excede las barreras de seguridad, detener el movimiento
+            if (newValue < safeLowerLimit) {
+              newValue = safeLowerLimit; // Detener en la barrera inferior
+            } else if (newValue > safeUpperLimit) {
+              newValue = safeUpperLimit; // Detener en la barrera superior
+            }
+          }
+          // Si no hay límites finitos, permitir movimiento libre pero controlado
 
           if (newValue !== currentDegrees) {
             return { servoId: joint.servoId!, value: newValue };
@@ -194,10 +225,19 @@ export function RevoluteJointsTable({
         const upperLimit = Math.round(
           radiansToDegrees(primaryJoint.limit?.upper ?? Infinity)
         );
-        newPrimaryValue = Math.max(
-          lowerLimit,
-          Math.min(upperLimit, newPrimaryValue)
-        );
+        
+        // LÍMITES DE SEGURIDAD ESTRICTOS para primary joint
+        if (isFinite(lowerLimit) && isFinite(upperLimit)) {
+          // Aplicar barreras de seguridad con margen antes de los límites extremos
+          const safeLowerLimit = lowerLimit + SAFETY_MARGIN_DEGREES;
+          const safeUpperLimit = upperLimit - SAFETY_MARGIN_DEGREES;
+          
+          if (newPrimaryValue < safeLowerLimit) {
+            newPrimaryValue = safeLowerLimit; // Detener en la barrera inferior
+          } else if (newPrimaryValue > safeUpperLimit) {
+            newPrimaryValue = safeUpperLimit; // Detener en la barrera superior
+          }
+        }
 
         // 用 Map 方便覆盖
         const updatesMap = new Map<number, number>();
@@ -237,10 +277,20 @@ export function RevoluteJointsTable({
           const depUpperLimit = Math.round(
             radiansToDegrees(dependentJoint.limit?.upper ?? Infinity)
           );
-          newDependentValue = Math.max(
-            depLowerLimit,
-            Math.min(depUpperLimit, newDependentValue)
-          );
+          
+          // LÍMITES DE SEGURIDAD ESTRICTOS para joints dependientes
+          if (isFinite(depLowerLimit) && isFinite(depUpperLimit)) {
+            // Aplicar barreras de seguridad con margen antes de los límites extremos
+            const safeLowerLimit = depLowerLimit + SAFETY_MARGIN_DEGREES;
+            const safeUpperLimit = depUpperLimit - SAFETY_MARGIN_DEGREES;
+            
+            if (newDependentValue < safeLowerLimit) {
+              newDependentValue = safeLowerLimit; // Detener en la barrera inferior
+            } else if (newDependentValue > safeUpperLimit) {
+              newDependentValue = safeUpperLimit; // Detener en la barrera superior
+            }
+          }
+          // Si no hay límites finitos, permitir movimiento libre pero controlado
           updatesMap.set(dependentJoint.servoId!, newDependentValue);
         });
 
@@ -254,15 +304,20 @@ export function RevoluteJointsTable({
       if (updates.length > 0) {
         updateJointsDegreesRef.current(updates);
       }
+
+      // Continue animation loop if keys are still pressed
+      if (pressedKeys.size > 0) {
+        animationId = requestAnimationFrame(updateJointsBasedOnKeys);
+      }
     };
 
     if (pressedKeys.size > 0) {
-      intervalId = setInterval(updateJointsBasedOnKeys, KEY_UPDATE_INTERVAL_MS);
+      animationId = requestAnimationFrame(updateJointsBasedOnKeys);
     }
 
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
       }
     };
   }, [pressedKeys]); // Re-run this effect only when pressedKeys changes

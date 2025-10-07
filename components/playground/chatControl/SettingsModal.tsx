@@ -84,13 +84,16 @@ export function SettingsModal({
   useEffect(() => {
     if (!show) return;
     function handleClickOutside(event: MouseEvent) {
+      // Evitar cerrar el modal si se hace clic en el textarea o sus elementos hijos
+      const target = event.target as Node;
       if (
         modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
+        !modalRef.current.contains(target)
       ) {
         onClose();
       }
     }
+    // Usar 'mousedown' en lugar de 'click' para mejor control
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [show, onClose]);
@@ -109,11 +112,21 @@ export function SettingsModal({
     onClose();
   };
 
+  // Prevenir la propagación de eventos del modal
+  const handleModalClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+      style={{ userSelect: 'none' }} // Prevenir selección accidental en el overlay
+    >
       <div
         ref={modalRef}
         className="bg-zinc-800 p-6 rounded-lg shadow-xl w-96 max-w-full lg:w-[500px] xl:w-[600px] mx-4"
+        onClick={handleModalClick}
+        style={{ userSelect: 'text' }} // Permitir selección dentro del modal
       >
         {/* LLM type selection - options on the right */}
         <div className="mb-4 flex items-center justify-between">
@@ -243,9 +256,25 @@ export function SettingsModal({
           <textarea
             value={systemPrompt}
             onChange={(e) => setSystemPromptState(e.target.value)}
+            onMouseDown={(e) => e.stopPropagation()} // Prevenir interferencia con el modal
+            onFocus={(e) => e.stopPropagation()} // Prevenir interferencia al hacer focus
             placeholder="Prompt del sistema para el modelo de IA"
-            rows={6}
-            className="w-full p-2 rounded bg-zinc-700 text-white mb-4 outline-none min-h-[80px] text-base"
+            rows={8}
+            className="w-full p-3 rounded bg-zinc-700 text-white mb-4 outline-none min-h-[120px] text-base resize-y border border-zinc-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+            style={{
+              fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+              lineHeight: '1.5',
+              whiteSpace: 'pre-wrap',
+              wordWrap: 'break-word',
+              userSelect: 'text', // Asegurar que se puede seleccionar texto
+              WebkitUserSelect: 'text', // Para Safari
+              MozUserSelect: 'text' // Para Firefox
+            }}
+            spellCheck={false}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            tabIndex={0} // Asegurar que es focuseable
           />
         </div>
         <div className="flex justify-end space-x-2">

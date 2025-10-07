@@ -132,8 +132,8 @@ CONTROL MAPPING:
 MOVEMENT CALCULATIONS:
 - Each keyPress moves ~0.15 degrees per 3ms interval
 - For specific degree rotations: duration = (degrees ÷ 0.15) × 3ms
-- CRITICAL: Max single keyPress duration is 20000ms (never exceed this limit)
-- For movements requiring >20000ms: ALWAYS use multiple sequential keyPress calls
+- ROTACIÓN CONTINUA: Sin límites de duración para control manual continuo
+- For movements requiring extended rotation: Use continuous key press without time limits
 - Standard movement speed: 1000ms = ~50 degrees of movement
 
 360° ROTATION OPTIONS (choose based on precision needed):
@@ -143,11 +143,12 @@ MOVEMENT CALCULATIONS:
 - 24 secuencias: 24 keyPress de 300ms cada una (15° por secuencia) - Precisión ultra-alta
 - 30 secuencias: 30 keyPress de 240ms cada una (12° por secuencia) - Precisión extrema
 - 36 secuencias: 36 keyPress de 200ms cada una (10° por secuencia) - Máxima precisión
+- CONTINUA: Mantener tecla presionada para rotación sin límites
 
 AVAILABLE TOOLS:
 1. keyPress: For single key movements
    - Use for simple, single movements
-   - Duration: 100-20000ms
+   - Duration: 100ms+ (sin límite máximo para rotación continua)
    
 2. keySequence: For complex multi-step movements
    - Use for sequences requiring multiple key presses
@@ -273,9 +274,9 @@ MOBILE BASE CONTROL:
 MOVEMENT CALCULATIONS:
 - Each keyPress moves ~0.15 degrees per 3ms for arms
 - Base movements: 1000ms = moderate speed movement
-- CRITICAL: Max single keyPress duration is 20000ms (never exceed this limit)
-- For movements requiring >20000ms: ALWAYS use multiple sequential keyPress calls
-- Example large rotation: Use multiple keyPress calls of ≤20000ms each
+- ROTACIÓN CONTINUA: Sin límites de duración para control manual continuo
+- For movements requiring extended rotation: Use continuous key press without time limits
+- Example large rotation: Use continuous key press or multiple keyPress calls
 
 COMPLEX SEQUENCE CAPABILITIES:
 1. DUAL-ARM COORDINATION: Execute synchronized bilateral movements
@@ -328,8 +329,8 @@ CONTROL MAPPING:
 MOVEMENT CALCULATIONS:
 - Standard movement duration: 1000ms = moderate speed
 - For precise distances: adjust duration based on desired travel
-- Short movements: 500ms, Long movements: up to 20000ms
-- For continuous motion: use sequential keyPress calls
+- Short movements: 500ms, Long movements: sin límite máximo
+- For continuous motion: use continuous key press without time limits
 
 ADVANCED NAVIGATION CAPABILITIES:
 1. PRECISE POSITIONING: Calculate exact movements for positioning
@@ -393,9 +394,9 @@ CONTROL MAPPING:
 MOVEMENT CALCULATIONS:
 - Each keyPress moves ~0.2 degrees per 3ms for precise control
 - Standard duration: 1000ms = moderate speed movement
-- CRITICAL: Max single keyPress duration is 20000ms (never exceed this limit)
-- For movements requiring >20000ms: ALWAYS use multiple sequential keyPress calls
-- Example large rotation: Use multiple keyPress calls of ≤20000ms each
+- ROTACIÓN CONTINUA: Sin límites de duración para control manual continuo
+- For movements requiring extended rotation: Use continuous key press without time limits
+- Example large rotation: Use continuous key press or multiple keyPress calls
 
 ADVANCED SERVO CAPABILITIES:
 1. PRECISE POSITIONING: Calculate exact angles and durations
@@ -500,7 +501,7 @@ MOVEMENT CALCULATIONS:
 - Fast movement: 500-800ms for quick steps
 - Slow movement: 1500-2000ms for careful navigation
 - Turning: 1000-1500ms for 90° turns
-- Max single keyPress duration: 20000ms for extended movements
+- Duración sin límite máximo para movimientos extendidos
 
 ADVANCED LOCOMOTION CAPABILITIES:
 1. GAIT PATTERNS: Execute walking, trotting, and dynamic gaits
@@ -616,7 +617,7 @@ MOVEMENT CALCULATIONS:
 - Fast movement: 600-800ms for quick steps
 - Slow movement: 1500-2500ms for careful navigation
 - Turning: 1200-1800ms for 90° turns
-- Max single keyPress duration: 20000ms for extended movements
+- Duración sin límite máximo para movimientos extendidos
 
 ADVANCED HUMANOID CAPABILITIES:
 1. BIPEDAL LOCOMOTION: Execute natural walking, turning, and stepping

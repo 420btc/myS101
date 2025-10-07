@@ -27,8 +27,8 @@ type WASDControlProps = {
   show?: boolean;
 };
 
-const MOVEMENT_STEP = 2.0; // Grados por pulsación
-const CONTINUOUS_INTERVAL = 50; // ms entre movimientos continuos
+const MOVEMENT_STEP = 0.2; // Velocidad muy reducida para control ultra preciso, consistente con RevoluteJointsTable
+const CONTINUOUS_INTERVAL = 16; // ~60fps for smooth animation, consistent with RevoluteJointsTable
 
 export function WASDControl({
   show = true,

@@ -88,10 +88,9 @@ export function ChatControl({
                 .number()
                 .int()
                 .min(100)
-                .max(20000)
                 .default(1000)
                 .describe(
-                  "Cuánto tiempo mantener la tecla en milisegundos (por defecto: 1000, mín: 100, máx: 20000)"
+                  "Cuánto tiempo mantener la tecla en milisegundos (por defecto: 1000, mín: 100, sin límite máximo para rotación continua)"
                 ),
             }),
             execute: async ({
@@ -136,9 +135,8 @@ export function ChatControl({
                       .number()
                       .int()
                       .min(100)
-                      .max(20000)
                       .describe(
-                        "Cuánto tiempo mantener la tecla en milisegundos (mín: 100, máx: 20000)"
+                        "Cuánto tiempo mantener la tecla en milisegundos (mín: 100, sin límite máximo para rotación continua)"
                       ),
                     pauseAfter: z
                       .number()
