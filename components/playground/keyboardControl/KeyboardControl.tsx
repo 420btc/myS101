@@ -103,17 +103,18 @@ export function ControlPanel({
       bounds="parent"
       className="z-50"
       style={{ display: show ? undefined : "none" }}
+      dragHandleClassName="drag-handle"
     >
       <div
         ref={ref}
         className={"max-h-[80vh] overflow-y-auto text-sm " + panelStyle}
       >
-        <h3 className="mt-0 mb-4 border-b border-white/50  pb-1 font-bold text-base flex justify-between items-center">
+        <h3 className="mt-0 mb-4 border-b border-white/50 pb-1 font-bold text-base flex justify-between items-center drag-handle cursor-move">
           <span>Controles de Articulaciones</span>
           <button
             onClick={onHide} // 优先调用 onHide
             onTouchEnd={onHide}
-            className="ml-2 text-xl hover:bg-zinc-800 px-2 rounded-full"
+            className="ml-2 text-xl hover:bg-zinc-800 px-2 rounded-full cursor-pointer"
             title="Colapsar"
           >
             ×
