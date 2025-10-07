@@ -11,16 +11,18 @@ export default function NotificationButton({
   hasNew,
 }: NotificationButtonProps) {
   return (
-    <div className="relative">
-      <GlassButton
-        onClick={onClick}
-        icon={<RiNotification2Line size={24} />}
-        tooltip="Notificaciones"
-        pressed={false}
-      />
-      {hasNew && (
-        <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-zinc-800" />
-      )}
-    </div>
+    <GlassButton
+      onClick={onClick}
+      icon={
+        <div className="relative">
+          <RiNotification2Line size={24} />
+          {hasNew && (
+            <span className="absolute -top-1 -right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-zinc-800" />
+          )}
+        </div>
+      }
+      tooltip="Notificaciones"
+      pressed={false}
+    />
   );
 }

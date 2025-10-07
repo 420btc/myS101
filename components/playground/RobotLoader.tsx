@@ -83,7 +83,8 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     return getPanelStateFromLocalStorage("robotColorControl", robotName) ?? false;
   });
   const [showWASDControl, setShowWASDControl] = useState(() => {
-    return getPanelStateFromLocalStorage("wasdControl", robotName) ?? false;
+    // Siempre inicializar como false para que no esté abierto por defecto
+    return false;
   });
   
   // Gamepad configuration state
@@ -225,7 +226,8 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   const toggleWASDControl = () => {
     setShowWASDControl((prev) => {
       const newState = !prev;
-      setPanelStateToLocalStorage("wasdControl", newState, robotName);
+      // No guardar el estado en localStorage para que siempre inicie cerrado
+      // setPanelStateToLocalStorage("wasdControl", newState, robotName);
       return newState;
     });
   };

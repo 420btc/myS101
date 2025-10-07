@@ -3,15 +3,32 @@
 import { StarField } from "@/components/star-field";
 import { robotConfigMap } from "@/config/robotConfig";
 import { useState } from "react";
+import PasswordDialog from "@/components/PasswordDialog";
+import { useRouter } from "next/navigation";
 
 import Link from "next/link";
 
 export default function Home() {
   const [selectedRobot, setSelectedRobot] = useState<string | null>(null);
   const [showAllRobots, setShowAllRobots] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [pendingPlayLink, setPendingPlayLink] = useState<string>("");
+  const router = useRouter();
 
   const handleRobotSelect = (robotId: string) => {
     setSelectedRobot(robotId);
+  };
+
+  const handlePlayClick = (e: React.MouseEvent, playLink: string) => {
+    e.preventDefault();
+    setPendingPlayLink(playLink);
+    setShowPasswordDialog(true);
+  };
+
+  const handlePasswordCorrect = () => {
+    if (pendingPlayLink) {
+      router.push(pendingPlayLink);
+    }
   };
 
   const robots = Object.entries(robotConfigMap).map(([name, config]) => ({
@@ -54,14 +71,14 @@ export default function Home() {
                   {soArm100.name === 'so-arm100' ? 'SO ARM 101' : soArm100.name}
                 </h2>
                 <div className="flex">
-                  <Link
-                    href={soArm100.playLink}
+                  <button
+                    onClick={(e) => handlePlayClick(e, soArm100.playLink)}
                     className={`bg-black text-white py-1.5 text-center hover:bg-zinc-800 border-t border-zinc-500 text-sm ${
                       soArm100.assembleLink ? "w-1/2 border-r" : "w-full"
                     }`}
                   >
                     Jugar
-                  </Link>
+                  </button>
                   {soArm100.assembleLink && (
                     <Link
                       href={soArm100.assembleLink}
@@ -105,14 +122,14 @@ export default function Home() {
                   {robot.name}
                 </h2>
                 <div className="flex">
-                  <Link
-                    href={robot.playLink}
+                  <button
+                    onClick={(e) => handlePlayClick(e, robot.playLink)}
                     className={`bg-black text-white py-1.5 text-center hover:bg-zinc-800 border-t border-zinc-500 text-sm ${
                       robot.assembleLink ? "w-1/2 border-r" : "w-full"
                     }`}
                   >
                     Jugar
-                  </Link>
+                  </button>
                   {robot.assembleLink && (
                     <Link
                       href={robot.assembleLink}
@@ -130,6 +147,13 @@ export default function Home() {
       <div className="absolute inset-0 -z-10" style={{ overflow: "hidden" }}>
         <StarField />
       </div>
+      
+      {/* Diálogo de contraseña */}
+      <PasswordDialog
+        open={showPasswordDialog}
+        onOpenChange={setShowPasswordDialog}
+        onPasswordCorrect={handlePasswordCorrect}
+      />
     </main>
   );
 }
