@@ -31,8 +31,8 @@ export default function Home() {
         <div className="text-center w-full">
           {" "}
           {/* Ensure text-center container takes full width */}
-          <h1 className="text-6xl mb-4 font-bold">BamBot</h1>
-          <p className="text-2xl mb-8">Facilita jugar con robots 🤖</p>
+          <h1 className="text-6xl mb-4 font-bold font-bowlby-one text-shadow-lg">SO ARM 101 CPF</h1>
+          <p className="text-2xl mb-8"> </p>
           {/* Changed from grid to flex for flexible centering */}
           <div className="container mx-auto p-4 flex flex-wrap justify-center gap-8 relative z-10">
             {/* Mostrar so-arm100 primero */}

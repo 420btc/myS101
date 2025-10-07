@@ -55,3 +55,14 @@ body {
   @apply bg-background text-foreground;
 }
 
+/* Fuente Bowlby One */
+.font-bowlby-one {
+  font-family: var(--font-bowlby-one), cursive;
+}
+
+/* Sombra de texto */
+.text-shadow-lg {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 
+               4px 4px 8px rgba(0, 0, 0, 0.3);
+}
+
