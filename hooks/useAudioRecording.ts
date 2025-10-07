@@ -330,16 +330,16 @@ export function useAudioRecording(options: UseAudioRecordingOptions = {}) {
         }
       }, 2000); // Aumentar delay a 2 segundos para dar más tiempo al MediaRecorder
 
-      // Timer de seguridad para tiempo máximo
-      recordingTimerRef.current = setTimeout(() => {
-        console.log('Tiempo máximo alcanzado, deteniendo grabación');
-        // Solicitar datos finales antes del timeout
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          mediaRecorderRef.current.requestData();
-          console.log('Datos finales solicitados por timeout');
-        }
+      // Configurar detección de silencio y timeout
+      silenceTimerRef.current = setTimeout(() => {
+        console.log('Timeout de silencio alcanzado');
         stopRecording();
-      }, maxRecordingTime);
+      }, 3000); // 3 segundos de silencio
+
+      recordingTimerRef.current = setTimeout(() => {
+        console.log('Tiempo máximo de grabación alcanzado');
+        stopRecording();
+      }, 30000); // 30 segundos máximo
 
     } catch (error) {
       console.error('Error al iniciar grabación:', {
