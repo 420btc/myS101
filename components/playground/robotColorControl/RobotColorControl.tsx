@@ -38,9 +38,11 @@ export function RobotColorControl({
 
   return (
     <Rnd
-      default={{
-        x: window.innerWidth - 320,
-        y: 100,
+      position={{
+        x: (window.innerWidth - 280) / 2,
+        y: (window.innerHeight - 400) / 2,
+      }}
+      size={{
         width: 280,
         height: "auto",
       }}
