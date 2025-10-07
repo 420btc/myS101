@@ -4,6 +4,7 @@ import { Rnd } from "react-rnd";
 import { generateText, tool } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { SettingsModal } from "./SettingsModal";
+import { MicrophoneSelector } from "./MicrophoneSelector";
 import { z } from "zod";
 import {
   getApiKeyFromLocalStorage,
@@ -13,6 +14,9 @@ import {
 } from "../../../lib/chatSettings";
 import useMeasure from "react-use-measure";
 import { panelStyle } from "@/components/playground/panelStyle";
+import { useAudioRecording } from "@/hooks/useAudioRecording";
+import { transcribeAudio, isWhisperAvailable } from "@/lib/whisper";
+import { RiMicLine, RiMicOffLine, RiLoader4Line } from "@remixicon/react";
 
 type ChatControlProps = {
   robotName?: string;
@@ -34,6 +38,15 @@ export function ChatControl({
   );
   const [showSettings, setShowSettings] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
+
+  // Audio recording state
+  const audioRecording = useAudioRecording({
+    silenceThreshold: 0.01,
+    silenceDuration: 3000,
+    maxRecordingTime: 60000,
+    deviceId: selectedDeviceId,
+  });
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -235,6 +248,53 @@ export function ChatControl({
     }
   };
 
+  // Handle audio transcription and sending
+  const handleAudioTranscription = async (audioBlob: Blob) => {
+    try {
+      setMessages((prev) => [...prev, { sender: "Sistema", text: "Transcribiendo audio..." }]);
+      
+      const transcription = await transcribeAudio(audioBlob, {
+        language: 'es',
+        prompt: 'Comandos para controlar un robot',
+      });
+
+      if (transcription.text.trim()) {
+        // Remove the "transcribing" message and add the transcribed text
+        setMessages((prev) => prev.slice(0, -1));
+        handleCommand(transcription.text.trim());
+      } else {
+        setMessages((prev) => [
+          ...prev.slice(0, -1),
+          { sender: "Sistema", text: "No se detectó audio claro. Inténtalo de nuevo." }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error en transcripción:', error);
+      setMessages((prev) => [
+        ...prev.slice(0, -1),
+        { sender: "Sistema", text: `Error en transcripción: ${error instanceof Error ? error.message : 'Error desconocido'}` }
+      ]);
+    }
+  };
+
+  // Handle microphone button click
+  const handleMicrophoneClick = () => {
+    if (!isWhisperAvailable()) {
+      setMessages((prev) => [
+        ...prev,
+        { sender: "Sistema", text: "Whisper no está disponible. Configura tu API key de OpenAI." }
+      ]);
+      setShowSettings(true);
+      return;
+    }
+
+    if (audioRecording.isRecording) {
+      audioRecording.stopRecording();
+    } else {
+      audioRecording.startRecording(handleAudioTranscription);
+    }
+  };
+
   return (
     <Rnd
       position={position}
@@ -287,7 +347,25 @@ export function ChatControl({
             </button>
           </div>
         )}
-        <div className="flex items-center space-x-2">
+        <div className="mb-2">
+          <MicrophoneSelector
+            selectedDeviceId={selectedDeviceId}
+            onDeviceChange={setSelectedDeviceId}
+          />
+        </div>
+        <div className="flex items-center space-x-2">{/* Indicador de estado de grabación */}
+          {audioRecording.isRecording && (
+            <div className="flex items-center space-x-2 text-red-400 text-sm animate-pulse">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+              <span>Grabando... {Math.floor(audioRecording.duration / 1000)}s</span>
+            </div>
+          )}
+          {audioRecording.isProcessing && (
+            <div className="flex items-center space-x-2 text-blue-400 text-sm">
+              <RiLoader4Line size={16} className="animate-spin" />
+              <span>Procesando audio...</span>
+            </div>
+          )}
           <div className="relative flex items-center w-full">
             <button
               onClick={() => alert("Soporte de cámara próximamente")}
@@ -311,8 +389,37 @@ export function ChatControl({
               onKeyDown={(e) => e.stopPropagation()}
               onKeyUp={(e) => e.stopPropagation()}
               placeholder="Escribe un comando..."
-              className="flex-1 pl-10 p-2 rounded bg-zinc-700 text-white outline-none text-sm"
+              className="flex-1 pl-10 pr-10 p-2 rounded bg-zinc-700 text-white outline-none text-sm"
             />
+            <button
+              onClick={handleMicrophoneClick}
+              disabled={audioRecording.isProcessing}
+              className={`absolute right-0 p-2 rounded transition-all duration-200 ${
+                audioRecording.isRecording
+                  ? "bg-red-600 hover:bg-red-700 text-white animate-pulse shadow-lg shadow-red-500/50"
+                  : audioRecording.isProcessing
+                  ? "bg-zinc-600 text-zinc-400 cursor-not-allowed"
+                  : "bg-zinc-700 hover:bg-zinc-600 text-zinc-400 hover:text-white"
+              }`}
+              title={
+                audioRecording.isRecording
+                  ? `🔴 GRABANDO... (${Math.floor(audioRecording.duration / 1000)}s) - Habla ahora`
+                  : audioRecording.isProcessing
+                  ? "🔄 Procesando audio..."
+                  : "🎤 Grabar comando de voz"
+              }
+            >
+              {audioRecording.isProcessing ? (
+                <RiLoader4Line size={20} className="animate-spin" />
+              ) : audioRecording.isRecording ? (
+                <div className="relative">
+                  <RiMicOffLine size={20} />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+                </div>
+              ) : (
+                <RiMicLine size={20} />
+              )}
+            </button>
           </div>
         </div>
       </div>
