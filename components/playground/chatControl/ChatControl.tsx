@@ -411,13 +411,7 @@ Duración por defecto: 1000ms. Pausa entre acciones: 500ms.`;
             </button>
           </div>
         </h4>
-        <div 
-          className="mb-2 max-h-[300px] overflow-y-auto"
-          style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
-          }}
-        >
+        <div className="mb-2 max-h-[300px] overflow-y-auto chat-scrollbar">
           {messages.map((msg, idx) => (
             <div
               key={idx}
