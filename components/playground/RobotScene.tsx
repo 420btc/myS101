@@ -44,6 +44,12 @@ export function RobotScene({
     const manager = new THREE.LoadingManager();
     const loader = new URDFLoader(manager);
 
+    // Limpiar robot anterior si existe
+    if (robotRef.current) {
+      scene.remove(robotRef.current);
+      robotRef.current = null;
+    }
+
     loader.load(
       urdfUrl,
       (robot) => {
@@ -90,7 +96,15 @@ export function RobotScene({
       undefined,
       (error) => console.error("Error loading URDF:", error)
     );
-  }, [robotName, urdfUrl, setJointDetails]);
+
+    // Función de limpieza
+    return () => {
+      if (robotRef.current) {
+        scene.remove(robotRef.current);
+        robotRef.current = null;
+      }
+    };
+  }, [robotName, urdfUrl, setJointDetails, scene]);
 
   // useEffect separado para manejar cambios de color
   useEffect(() => {

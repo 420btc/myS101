@@ -268,6 +268,12 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     <>
       <Canvas
         shadows
+        frameloop="always"
+        gl={{ 
+          antialias: true,
+          powerPreference: "high-performance",
+          alpha: false
+        }}
         camera={{
           position: camera.position,
           fov: camera.fov,

@@ -51,6 +51,12 @@ export default function RobotPreview() {
       <div className="w-full h-96 rounded-lg overflow-hidden border border-zinc-600">
         <Canvas
           shadows
+          frameloop="always"
+          gl={{ 
+            antialias: true,
+            powerPreference: "high-performance",
+            alpha: false
+          }}
           camera={{
             position: robotConfig.camera.position as [number, number, number],
             fov: robotConfig.camera.fov,
