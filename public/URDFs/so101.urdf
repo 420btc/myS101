@@ -368,7 +368,7 @@ https://cad.onshape.com/documents/7715cc284bb430fe6dab4ffd/w/4fd0791b683777b02f8
     <parent link="shoulder" />
     <child link="upper_arm" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="1.39467" upper="4.88692" />
+    <limit effort="10" velocity="10" lower="1.39626" upper="4.88692" />
   </joint>
   <!-- Joint from upper_arm to lower_arm -->
   <joint name="Elbow" type="revolute">

@@ -30,6 +30,8 @@ import { RobotColorControl } from "./robotColorControl/RobotColorControl";
 import GamepadControlButton from "./controlButtons/GamepadControlButton";
 import { GamepadControl } from "../GamepadControl";
 import { useGamepadRobotControl, GamepadControlConfig } from "@/hooks/useGamepadRobotControl";
+import { WASDControlButton } from "./controlButtons/WASDControlButton";
+import { WASDControl } from "./wasdControl/WASDControl";
 
 export type JointDetails = {
   name: string;
@@ -79,6 +81,9 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   });
   const [showRobotColorControl, setShowRobotColorControl] = useState(() => {
     return getPanelStateFromLocalStorage("robotColorControl", robotName) ?? false;
+  });
+  const [showWASDControl, setShowWASDControl] = useState(() => {
+    return getPanelStateFromLocalStorage("wasdControl", robotName) ?? false;
   });
   
   // Gamepad configuration state
@@ -212,6 +217,14 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     setShowRobotColorControl((prev) => {
       const newState = !prev;
       setPanelStateToLocalStorage("robotColorControl", newState, robotName);
+      return newState;
+    });
+  };
+
+  const toggleWASDControl = () => {
+    setShowWASDControl((prev) => {
+      const newState = !prev;
+      setPanelStateToLocalStorage("wasdControl", newState, robotName);
       return newState;
     });
   };
@@ -383,6 +396,15 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
         onForceDetection={gamepadControl.forceDetection}
       />
 
+      {/* WASD Control overlay */}
+      <WASDControl
+        show={showWASDControl}
+        onHide={() => setShowWASDControl(false)}
+        updateJointDegrees={updateJointDegrees}
+        updateJointsDegrees={updateJointsDegrees}
+        jointDetails={jointDetails}
+      />
+
       <div className="absolute bottom-5 left-0 right-0">
         <div className="flex flex-col items-center gap-4">
           <div className="flex gap-2 max-w-md">
@@ -410,6 +432,10 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
               showControlPanel={showGamepadControl}
               onToggleControlPanel={toggleGamepadControl}
               isConnected={gamepadControl.isGamepadConnected}
+            />
+            <WASDControlButton
+              showControlPanel={showWASDControl}
+              onToggleControlPanel={toggleWASDControl}
             />
             <RecordButton
               showControlPanel={showRecordControl}
