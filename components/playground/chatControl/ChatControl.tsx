@@ -88,10 +88,10 @@ export function ChatControl({
                 .number()
                 .int()
                 .min(100)
-                .max(5000)
+                .max(20000)
                 .default(1000)
                 .describe(
-                  "Cuánto tiempo mantener la tecla en milisegundos (por defecto: 1000, mín: 100, máx: 5000)"
+                  "Cuánto tiempo mantener la tecla en milisegundos (por defecto: 1000, mín: 100, máx: 20000)"
                 ),
             }),
             execute: async ({
@@ -118,6 +118,85 @@ export function ChatControl({
               });
               window.dispatchEvent(keyupEvent);
               return `Tecla "${key.toUpperCase()}" mantenida durante ${holdTime} ms`;
+            },
+          }),
+          keySequence: tool({
+            description:
+              "Ejecuta una secuencia de múltiples pulsaciones de teclas con duraciones específicas para movimientos complejos",
+            parameters: z.object({
+              sequence: z
+                .array(
+                  z.object({
+                    key: z
+                      .string()
+                      .describe(
+                        "La tecla a presionar (ej: 'w', 'a', 's', 'd', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight')"
+                      ),
+                    duration: z
+                      .number()
+                      .int()
+                      .min(100)
+                      .max(20000)
+                      .describe(
+                        "Cuánto tiempo mantener la tecla en milisegundos (mín: 100, máx: 20000)"
+                      ),
+                    pauseAfter: z
+                      .number()
+                      .int()
+                      .min(0)
+                      .max(5000)
+                      .default(100)
+                      .describe(
+                        "Pausa después de esta tecla en milisegundos (por defecto: 100, máx: 5000)"
+                      ),
+                  })
+                )
+                .min(1)
+                .max(10)
+                .describe(
+                  "Secuencia de teclas a ejecutar (máximo 10 teclas por secuencia)"
+                ),
+            }),
+            execute: async ({
+              sequence,
+            }: {
+              sequence: Array<{
+                key: string;
+                duration: number;
+                pauseAfter?: number;
+              }>;
+            }) => {
+              let results: string[] = [];
+              
+              for (let i = 0; i < sequence.length; i++) {
+                const { key, duration, pauseAfter = 100 } = sequence[i];
+                
+                // Execute keypress
+                const keydownEvent = new KeyboardEvent("keydown", {
+                  key,
+                  bubbles: true,
+                });
+                window.dispatchEvent(keydownEvent);
+
+                // Wait for the specified duration
+                await new Promise((resolve) => setTimeout(resolve, duration));
+
+                // Simulate keyup event
+                const keyupEvent = new KeyboardEvent("keyup", {
+                  key,
+                  bubbles: true,
+                });
+                window.dispatchEvent(keyupEvent);
+                
+                results.push(`${i + 1}. Tecla "${key.toUpperCase()}" mantenida durante ${duration} ms`);
+                
+                // Pause between keystrokes (except for the last one)
+                if (i < sequence.length - 1 && pauseAfter > 0) {
+                  await new Promise((resolve) => setTimeout(resolve, pauseAfter));
+                }
+              }
+              
+              return `Secuencia ejecutada:\n${results.join('\n')}`;
             },
           }),
         },

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { robotConfigMap } from "@/config/robotConfig";
 import * as THREE from "three";
 import { Html, useProgress } from "@react-three/drei";
 import { ControlPanel } from "./keyboardControl/KeyboardControl";
 import { useRobotControl } from "@/hooks/useRobotControl";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { ChatControl } from "./chatControl/ChatControl";
 import LeaderControl from "../playground/leaderControl/LeaderControl";
 import { useLeaderRobotControl } from "@/hooks/useLeaderRobotControl";
@@ -22,6 +22,9 @@ import {
   getPanelStateFromLocalStorage,
   setPanelStateToLocalStorage,
 } from "@/lib/panelSettings";
+import { SceneBackground } from "./SceneBackground";
+import BackgroundControlButton from "./controlButtons/BackgroundControlButton";
+import { BackgroundControl } from "./backgroundControl/BackgroundControl";
 
 export type JointDetails = {
   name: string;
@@ -48,9 +51,10 @@ function Loader() {
 
 export default function RobotLoader({ robotName }: RobotLoaderProps) {
   const [jointDetails, setJointDetails] = useState<JointDetails[]>([]);
+  const [backgroundColor, setBackgroundColor] = useState<number>(0x263238);
   const [showControlPanel, setShowControlPanel] = useState(() => {
     const stored = getPanelStateFromLocalStorage("keyboardControl", robotName);
-    return stored !== null ? stored : window.innerWidth >= 900;
+    return stored !== null ? stored : false;
   });
   const [showLeaderControl, setShowLeaderControl] = useState(() => {
     return getPanelStateFromLocalStorage("leaderControl", robotName) ?? false;
@@ -60,6 +64,9 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   });
   const [showRecordControl, setShowRecordControl] = useState(() => {
     return getPanelStateFromLocalStorage("recordControl", robotName) ?? false;
+  });
+  const [showBackgroundControl, setShowBackgroundControl] = useState(() => {
+    return getPanelStateFromLocalStorage("backgroundControl", robotName) ?? false;
   });
   
   // Notification states
@@ -151,6 +158,14 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     });
   };
 
+  const toggleBackgroundControl = () => {
+    setShowBackgroundControl((prev) => {
+      const newState = !prev;
+      setPanelStateToLocalStorage("backgroundControl", newState, robotName);
+      return newState;
+    });
+  };
+
   const hideControlPanel = () => {
     setShowControlPanel(false);
     setPanelStateToLocalStorage("keyboardControl", false, robotName);
@@ -169,6 +184,11 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
   const hideRecordControl = () => {
     setShowRecordControl(false);
     setPanelStateToLocalStorage("recordControl", false, robotName);
+  };
+
+  const hideBackgroundControl = () => {
+    setShowBackgroundControl(false);
+    setPanelStateToLocalStorage("backgroundControl", false, robotName);
   };
 
   // Notification functions
@@ -192,10 +212,8 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
           position: camera.position,
           fov: camera.fov,
         }}
-        onCreated={({ scene }) => {
-          scene.background = new THREE.Color(0x263238);
-        }}
       >
+        <SceneBackground color={backgroundColor} />
         <Suspense fallback={<Loader />}>
           <RobotScene
             robotName={robotName}
@@ -271,8 +289,16 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
         }}
       />
 
+      {/* Background Control overlay */}
+      <BackgroundControl
+        show={showBackgroundControl}
+        onHide={hideBackgroundControl}
+        currentColor={backgroundColor}
+        onColorChange={setBackgroundColor}
+      />
+
       <div className="absolute bottom-5 left-0 right-0">
-        <div className="flex justify-center items-center">
+        <div className="flex flex-col items-center gap-4">
           <div className="flex gap-2 max-w-md">
             <LeaderControlButton
               showControlPanel={showLeaderControl}
@@ -285,6 +311,10 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
             <ChatControlButton
               showControlPanel={showChatControl}
               onToggleControlPanel={toggleChatControl}
+            />
+            <BackgroundControlButton
+              showControlPanel={showBackgroundControl}
+              onToggleControlPanel={toggleBackgroundControl}
             />
             <RecordButton
               showControlPanel={showRecordControl}
