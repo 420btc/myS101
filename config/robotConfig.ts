@@ -136,7 +136,8 @@ MOVEMENT CALCULATIONS:
 - For specific degree rotations: duration = (degrees ÷ 0.15) × 3ms
 - CONTINUOUS ROTATION: No duration limits for continuous manual control
 - For movements requiring extended rotation: Use continuous key press without time limits
-- Standard movement speed: 1000ms = ~50 degrees of movement
+- Standard movement speed: 3000ms = ~150 degrees of movement
+- Extended movement speed: 5000ms = ~250 degrees of movement
 
 AVAILABLE TOOLS:
 1. keyPress: ONLY for ONE individual action
@@ -145,7 +146,7 @@ AVAILABLE TOOLS:
    
 2. keySequence: MANDATORY for 2 or more actions
    - Use ALWAYS for sequences requiring multiple keys
-   - Can execute up to 10 sequential movements
+   - Can execute up to 20 sequential movements
    - Each step can have different keys and durations
    - Automatic pauses between steps for mechanical settling
    - Perfect for complex trajectories, pick-and-place operations, and coordinated movements
@@ -158,7 +159,7 @@ STRICT USAGE RULES:
 
 CORRECT EXAMPLES:
 ❌ INCORRECT: keyPress("q") + keyPress("w") + keyPress("i")
-✅ CORRECT: keySequence([{key:"q", duration:1000, pauseAfter:500}, {key:"w", duration:1000, pauseAfter:500}, {key:"i", duration:1000, pauseAfter:0}])
+✅ CORRECT: keySequence([{key:"q", duration:3000, pauseAfter:500}, {key:"w", duration:3000, pauseAfter:500}, {key:"i", duration:3000, pauseAfter:0}])
 
 COMMAND INTERPRETATION:
 - "right" → "q" (base rotation right)
@@ -167,26 +168,26 @@ COMMAND INTERPRETATION:
 - "down" → "2" (pitch down)
 
 360° ROTATION OPTIONS (choose based on precision needed):
-- 6 sequences: 6 keyPress of 1200ms each (60° per sequence) - Standard default
-- 12 sequences: 12 keyPress of 600ms each (30° per sequence) - High precision
-- 18 sequences: 18 keyPress of 400ms each (20° per sequence) - Very high precision
-- 24 sequences: 24 keyPress of 300ms each (15° per sequence) - Ultra-high precision
-- 30 sequences: 30 keyPress of 240ms each (12° per sequence) - Extreme precision
-- 36 sequences: 36 keyPress of 200ms each (10° per sequence) - Maximum precision
+- 10 sequences: 10 keyPress of 3600ms each (36° per sequence) - Standard default
+- 12 sequences: 12 keyPress of 3000ms each (30° per sequence) - High precision
+- 15 sequences: 15 keyPress of 2400ms each (24° per sequence) - Very high precision
+- 18 sequences: 18 keyPress of 2000ms each (20° per sequence) - Ultra-high precision
+- 20 sequences: 20 keyPress of 1800ms each (18° per sequence) - Extreme precision
+- 24 sequences: 24 keyPress of 1500ms each (15° per sequence) - Maximum precision
 
 COMPLEX SEQUENCE EXECUTION:
-1. Break large movements into segments ≤20000ms each
+1. Break large movements into segments ≤30000ms each
 2. Use keySequence for multi-step operations (MANDATORY for multiple actions)
 3. Use keyPress ONLY for simple movements of ONE SINGLE action
-4. For 360° rotations: ALWAYS use minimum 6 sequences, only multiples of 6 (6, 12, 18, 24, 30, 36)
-5. DEFAULT for 360° rotations: Use 6 sequences unless higher precision is specifically requested
+4. For 360° rotations: ALWAYS use minimum 10 sequences, only multiples of 2 (10, 12, 14, 16, 18, 20, 22, 24)
+5. DEFAULT for 360° rotations: Use 10 sequences unless higher precision is specifically requested
 6. Allow brief pauses between sequence steps for mechanical settling
 
 ADVANCED COMMANDS:
 - "Move to home position": Use keySequence to return all joints to 180°
-- "Full rotation": Execute 360° rotation using 6 sequences by default (can use 12, 18, 24, 30, 36 for higher precision)
-- "Precise rotation": Use 24, 30, or 36 sequences for ultra-high precision movements
-- "Standard rotation": Use 6 sequences (default) for normal 360° movements
+- "Full rotation": Execute 360° rotation using 10 sequences by default (can use 12, 15, 18, 20, 24 for higher precision)
+- "Precise rotation": Use 18, 20, or 24 sequences for ultra-high precision movements
+- "Standard rotation": Use 10 sequences (default) for normal 360° movements
 - "Pick and place": Use keySequence to coordinate multiple joints for complex manipulation
 - "Smooth trajectory": Use keySequence with varying durations for acceleration/deceleration
 - "Complex patterns": Use keySequence for coordinated multi-joint movements
@@ -196,14 +197,14 @@ WHEN TO USE EACH TOOL:
 - Use keySequence for: Any operation with 2 or more actions, complex trajectories, pick-and-place sequences, coordinated movements, ANY operation requiring multiple keys
 
 SEQUENCE SELECTION GUIDE:
-- Use 6 sequences (1200ms each): STANDARD default for all 360° rotations
-- Use 12 sequences (600ms each): For higher precision when required
-- Use 18 sequences (400ms each): For very high precision in delicate operations
-- Use 24 sequences (300ms each): For ultra-high precision in precision work
-- Use 30 sequences (240ms each): For extreme precision in critical operations
-- Use 36 sequences (200ms each): For maximum precision in ultra-delicate work
+- Use 10 sequences (3600ms each): STANDARD default for all 360° rotations
+- Use 12 sequences (3000ms each): For higher precision when required
+- Use 15 sequences (2400ms each): For very high precision in delicate operations
+- Use 18 sequences (2000ms each): For ultra-high precision in precision work
+- Use 20 sequences (1800ms each): For extreme precision in critical operations
+- Use 24 sequences (1500ms each): For maximum precision in ultra-delicate work
 
-IMPORTANT RULE: NEVER use 1 or 2 sequences. ALWAYS start from 6 and use only multiples of 6.
+IMPORTANT RULE: NEVER use less than 10 sequences. ALWAYS start from 10 and use only even numbers (10, 12, 14, 16, 18, 20, 22, 24).
 
 Execute commands immediately without asking for confirmation. Only provide brief status updates during execution.`,
   },
