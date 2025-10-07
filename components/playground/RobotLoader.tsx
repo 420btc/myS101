@@ -149,6 +149,7 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     startRecording,
     stopRecording,
     clearRecordData,
+    loadRecordData,
   } = useRobotControl(jointDetails, urdfInitJointAngles);
 
   // Initialize gamepad robot control
@@ -360,6 +361,7 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
         startRecording={startRecording}
         stopRecording={stopRecording}
         clearRecordData={clearRecordData}
+        loadRecordData={loadRecordData}
         updateJointsDegrees={updateJointsDegrees}
         updateJointsSpeed={updateJointsSpeed}
         jointDetails={jointDetails}

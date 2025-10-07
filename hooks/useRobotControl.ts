@@ -206,6 +206,11 @@ export function useRobotControl(
     setRecordData([]);
   }, []);
 
+  // Función para cargar dataset desde datos guardados
+  const loadRecordData = useCallback((data: number[][]) => {
+    setRecordData(data);
+  }, []);
+
   // Clean up recording interval on unmount
   useEffect(() => {
     return () => {
@@ -397,5 +402,6 @@ export function useRobotControl(
     startRecording,
     stopRecording,
     clearRecordData,
+    loadRecordData,
   };
 }
