@@ -27,15 +27,39 @@ export default function WebcamView({ show, onHide, className = "", onRobotContro
   useEffect(() => {
     const loadModels = async () => {
       try {
-        console.log('🔄 Iniciando carga de modelos face-api.js...');
-        // Solo cargar el modelo TinyFaceDetector para detección básica de rostros
-        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+        // Intentar múltiples rutas para compatibilidad con producción
+        const modelPaths = [
+          '/models',           // Ruta local de desarrollo
+          './models',          // Ruta relativa
+          '/public/models',    // Ruta alternativa
+          'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/model' // CDN de respaldo
+        ];
         
-        console.log('✅ Modelos de face-api.js cargados correctamente');
-        setModelsLoaded(true);
+        let modelsLoadedSuccessfully = false;
+        let lastError = null;
+        
+        for (const modelPath of modelPaths) {
+          try {
+            // Solo cargar el modelo TinyFaceDetector para detección básica de rostros
+            await faceapi.nets.tinyFaceDetector.loadFromUri(modelPath);
+            
+            modelsLoadedSuccessfully = true;
+            break;
+          } catch (pathError) {
+            lastError = pathError;
+            continue;
+          }
+        }
+        
+        if (modelsLoadedSuccessfully) {
+          setModelsLoaded(true);
+        } else {
+          throw lastError || new Error('No se pudieron cargar los modelos desde ninguna ruta');
+        }
+        
       } catch (error) {
-        console.error('❌ Error cargando modelos face-api.js:', error);
         setModelsLoaded(false);
+        setError('Error cargando modelos de detección facial. Revisa la consola para más detalles.');
       }
     };
     
@@ -51,23 +75,79 @@ export default function WebcamView({ show, onHide, className = "", onRobotContro
 
   const startWebcam = async () => {
     console.log('📹 Intentando iniciar webcam...');
+    
+    // Verificar si estamos en HTTPS (requerido para cámara en producción)
+    if (typeof window !== 'undefined') {
+      const isHTTPS = window.location.protocol === 'https:';
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      console.log('🔒 Protocolo:', window.location.protocol);
+      console.log('🏠 Hostname:', window.location.hostname);
+      
+      if (!isHTTPS && !isLocalhost) {
+        console.error('❌ HTTPS requerido para acceso a cámara en producción');
+        setError('HTTPS es requerido para acceder a la cámara en producción. Asegúrate de que tu sitio use HTTPS.');
+        return;
+      }
+    }
+    
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 }
+      // Verificar disponibilidad de getUserMedia
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('getUserMedia no está disponible en este navegador');
+      }
+      
+      console.log('🎥 Solicitando permisos de cámara...');
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'user'
+        }
       });
       
-      console.log('✅ Webcam iniciada correctamente');
-      setStream(mediaStream);
+      console.log('✅ Webcam activada correctamente');
+      console.log('📊 Stream info:', {
+        active: stream.active,
+        tracks: stream.getVideoTracks().length,
+        settings: stream.getVideoTracks()[0]?.getSettings()
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        console.log('🔗 Stream asignado al elemento video');
+      }
+      
+      setStream(stream);
       setIsActive(true);
       setError("");
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        console.log('📺 Stream asignado al elemento video');
+    } catch (error: any) {
+      console.error('❌ Error iniciando webcam:', error);
+      
+      // Mensajes de error específicos para producción
+      let errorMessage = 'Error desconocido al acceder a la cámara';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = 'Permisos de cámara denegados. Por favor, permite el acceso a la cámara y recarga la página.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'No se encontró ninguna cámara. Verifica que tu dispositivo tenga una cámara conectada.';
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage = 'Acceso a cámara no soportado. Asegúrate de usar HTTPS en producción.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = 'Cámara en uso por otra aplicación. Cierra otras aplicaciones que puedan estar usando la cámara.';
+      } else if (error.message.includes('getUserMedia')) {
+        errorMessage = 'Tu navegador no soporta acceso a cámara o necesitas HTTPS para producción.';
       }
-    } catch (err) {
-      console.error('❌ Error iniciando webcam:', err);
-      setError("Error al acceder a la cámara: " + (err as Error).message);
+      
+      console.error('💡 Sugerencias para resolver el error:');
+      console.error('   1. Verificar que el sitio use HTTPS en producción');
+      console.error('   2. Verificar permisos de cámara en el navegador');
+      console.error('   3. Verificar que no haya otras aplicaciones usando la cámara');
+      console.error('   4. Probar en un navegador diferente');
+      
+      setError(errorMessage);
       setIsActive(false);
     }
   };
@@ -101,13 +181,20 @@ export default function WebcamView({ show, onHide, className = "", onRobotContro
     try {
       const currentTime = Date.now();
       
+      // Log para verificar que la función se ejecuta
+      console.log('🔍 detectFaces ejecutándose - Seguimiento habilitado:', faceTrackingEnabled);
+      
       // Solo detectar rostros si el seguimiento facial está habilitado
       if (faceTrackingEnabled) {
+        console.log('👁️ Iniciando detección de rostros...');
+        
         // Detectar rostros con máxima precisión para movimientos milimétricos
         const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
           inputSize: 512,
           scoreThreshold: 0.2
         }));
+        
+        console.log('📊 Rostros detectados:', detections.length);
         
         const displaySize = { width: video.videoWidth, height: video.videoHeight };
         faceapi.matchDimensions(canvas, displaySize);
@@ -143,7 +230,9 @@ export default function WebcamView({ show, onHide, className = "", onRobotContro
           ctx.setLineDash([]); // Resetear línea punteada
           
           // Solo dibujar rectángulos de detección (sin puntos faciales ni expresiones)
-          resizedDetections.forEach(detection => {
+          resizedDetections.forEach((detection, index) => {
+            console.log(`🎯 Procesando rostro ${index + 1}:`, detection);
+            
             // FaceDetection tiene la propiedad box directamente
             const box = detection.box;
             
@@ -151,6 +240,8 @@ export default function WebcamView({ show, onHide, className = "", onRobotContro
               // Calcular el centro de la detección
               const centerX = box.x + box.width / 2;
               const centerY = box.y + box.height / 2;
+              
+              console.log(`📍 Centro del rostro ${index + 1}: X=${Math.round(centerX)}, Y=${Math.round(centerY)}`);
               
               // Tamaño fijo del recuadro (80x80 píxeles)
               const fixedSize = 80;
@@ -231,13 +322,14 @@ export default function WebcamView({ show, onHide, className = "", onRobotContro
         }
       } else {
         // Si el seguimiento facial está deshabilitado, limpiar el canvas
+        console.log('👁️‍🗨️ Seguimiento facial deshabilitado, limpiando canvas');
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
       }
     } catch (error) {
-      // Error silencioso durante detección
+      console.error('❌ Error en detectFaces:', error);
     }
   };
 
