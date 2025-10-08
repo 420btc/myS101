@@ -207,11 +207,14 @@ export default function WebcamView({ show, onHide, className = "", onRobotContro
           let zone = 'CENTRO';
           if (centerX < canvas.width * 0.4) {
             zone = 'IZQUIERDA';
+            console.log('🎯 Cara detectada en IZQUIERDA, enviando comando left');
             if (onRobotControl) onRobotControl('left');
           } else if (centerX > canvas.width * 0.6) {
             zone = 'DERECHA';
+            console.log('🎯 Cara detectada en DERECHA, enviando comando right');
             if (onRobotControl) onRobotControl('right');
           } else {
+            console.log('🎯 Cara detectada en CENTRO, enviando comando center');
             if (onRobotControl) onRobotControl('center');
           }
 

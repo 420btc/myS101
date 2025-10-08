@@ -241,9 +241,9 @@ export default function RobotLoader({ robotName }: RobotLoaderProps) {
     console.log('🔌 Robot conectado:', isConnected);
     console.log('🤖 Nombre del robot:', robotName);
     
+    // Permitir control tanto para robots conectados como para simulación
     if (!isConnected) {
-      console.log('❌ Robot no conectado, no se puede controlar');
-      return;
+      console.log('🎮 Controlando robot en modo simulación');
     }
 
     // Obtener las teclas de control según el tipo de robot
