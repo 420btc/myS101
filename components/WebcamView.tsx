@@ -74,80 +74,73 @@ export default function WebcamView({ show, onHide, className = "", onRobotContro
   }, []);
 
   const startWebcam = async () => {
-    console.log('📹 Intentando iniciar webcam...');
-    
-    // Verificar si estamos en HTTPS (requerido para cámara en producción)
-    if (typeof window !== 'undefined') {
-      const isHTTPS = window.location.protocol === 'https:';
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      
-      console.log('🔒 Protocolo:', window.location.protocol);
-      console.log('🏠 Hostname:', window.location.hostname);
-      
-      if (!isHTTPS && !isLocalhost) {
-        console.error('❌ HTTPS requerido para acceso a cámara en producción');
-        setError('HTTPS es requerido para acceder a la cámara en producción. Asegúrate de que tu sitio use HTTPS.');
-        return;
-      }
-    }
-    
     try {
-      // Verificar disponibilidad de getUserMedia
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('getUserMedia no está disponible en este navegador');
+      // Verificar si estamos en un contexto seguro (HTTPS o localhost)
+      const isSecureContext = window.location.protocol === 'https:' || 
+                             window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1';
+      
+      if (!isSecureContext && window.location.protocol !== 'http:') {
+        throw new Error('HTTPS_REQUIRED');
       }
-      
-      console.log('🎥 Solicitando permisos de cámara...');
-      
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 640 },
+
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 640 }, 
           height: { ideal: 480 },
           facingMode: 'user'
-        }
-      });
-      
-      console.log('✅ Webcam activada correctamente');
-      console.log('📊 Stream info:', {
-        active: stream.active,
-        tracks: stream.getVideoTracks().length,
-        settings: stream.getVideoTracks()[0]?.getSettings()
+        } 
       });
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        console.log('🔗 Stream asignado al elemento video');
       }
       
       setStream(stream);
       setIsActive(true);
       setError("");
+    } catch (err: any) {
+      let errorMessage = 'Error accediendo a la cámara';
+      let suggestions: string[] = [];
       
-    } catch (error: any) {
-      console.error('❌ Error iniciando webcam:', error);
-      
-      // Mensajes de error específicos para producción
-      let errorMessage = 'Error desconocido al acceder a la cámara';
-      
-      if (error.name === 'NotAllowedError') {
-        errorMessage = 'Permisos de cámara denegados. Por favor, permite el acceso a la cámara y recarga la página.';
-      } else if (error.name === 'NotFoundError') {
-        errorMessage = 'No se encontró ninguna cámara. Verifica que tu dispositivo tenga una cámara conectada.';
-      } else if (error.name === 'NotSupportedError') {
-        errorMessage = 'Acceso a cámara no soportado. Asegúrate de usar HTTPS en producción.';
-      } else if (error.name === 'NotReadableError') {
-        errorMessage = 'Cámara en uso por otra aplicación. Cierra otras aplicaciones que puedan estar usando la cámara.';
-      } else if (error.message.includes('getUserMedia')) {
-        errorMessage = 'Tu navegador no soporta acceso a cámara o necesitas HTTPS para producción.';
+      if (err.name === 'NotAllowedError' || err.message === 'Permission denied') {
+        errorMessage = 'Permisos de cámara denegados';
+        suggestions = [
+          '1. Haz clic en el ícono de cámara en la barra de direcciones',
+          '2. Selecciona "Permitir" para el acceso a la cámara',
+          '3. Recarga la página después de otorgar permisos'
+        ];
+      } else if (err.name === 'NotFoundError') {
+        errorMessage = 'No se encontró ninguna cámara';
+        suggestions = [
+          '1. Conecta una cámara web al dispositivo',
+          '2. Verifica que la cámara esté funcionando en otras aplicaciones',
+          '3. Reinicia el navegador'
+        ];
+      } else if (err.name === 'NotReadableError') {
+        errorMessage = 'Cámara en uso por otra aplicación';
+        suggestions = [
+          '1. Cierra otras aplicaciones que usen la cámara',
+          '2. Reinicia el navegador',
+          '3. Reinicia el dispositivo si es necesario'
+        ];
+      } else if (err.message === 'HTTPS_REQUIRED') {
+        errorMessage = 'Se requiere conexión segura (HTTPS)';
+        suggestions = [
+          '1. Accede al sitio usando HTTPS',
+          '2. O usa localhost para desarrollo',
+          '3. Configura certificados SSL en producción'
+        ];
+      } else if (err.name === 'NotSupportedError') {
+        errorMessage = 'Navegador no compatible';
+        suggestions = [
+          '1. Usa Chrome, Firefox, Safari o Edge moderno',
+          '2. Actualiza tu navegador a la última versión',
+          '3. Verifica que WebRTC esté habilitado'
+        ];
       }
-      
-      console.error('💡 Sugerencias para resolver el error:');
-      console.error('   1. Verificar que el sitio use HTTPS en producción');
-      console.error('   2. Verificar permisos de cámara en el navegador');
-      console.error('   3. Verificar que no haya otras aplicaciones usando la cámara');
-      console.error('   4. Probar en un navegador diferente');
-      
-      setError(errorMessage);
+
+      setError(`${errorMessage}. ${suggestions.join(' ')}`);
       setIsActive(false);
     }
   };
@@ -167,209 +160,87 @@ export default function WebcamView({ show, onHide, className = "", onRobotContro
   };
 
   const detectFaces = async () => {
-    if (!videoRef.current || !canvasRef.current || !modelsLoaded) {
-      return;
-    }
+    if (!videoRef.current || !canvasRef.current || !modelsLoaded) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    
-    if (video.paused || video.ended) {
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) return;
+
+    // Limpiar el canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!faceTrackingEnabled) {
       return;
     }
 
     try {
-      const currentTime = Date.now();
-      
-      // Log para verificar que la función se ejecuta
-      console.log('🔍 detectFaces ejecutándose - Seguimiento habilitado:', faceTrackingEnabled);
-      
-      // Solo detectar rostros si el seguimiento facial está habilitado
-      if (faceTrackingEnabled) {
-        console.log('👁️ Iniciando detección de rostros...');
-        
-        // Detectar rostros con máxima precisión para movimientos milimétricos
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
-          inputSize: 512,
-          scoreThreshold: 0.2
-        }));
-        
-        console.log('📊 Rostros detectados:', detections.length);
-        
-        const displaySize = { width: video.videoWidth, height: video.videoHeight };
-        faceapi.matchDimensions(canvas, displaySize);
-        const resizedDetections = faceapi.resizeResults(detections, displaySize);
-        
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          
-          // Dibujar líneas de referencia para las zonas de control
-          const videoWidth = video.videoWidth;
-          const videoHeight = video.videoHeight;
-          const leftThreshold = videoWidth * 0.4;
-          const rightThreshold = videoWidth * 0.6;
-          
-          // Líneas verticales de zona
-          ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([5, 5]);
-          
-          // Línea izquierda
-          ctx.beginPath();
-          ctx.moveTo(leftThreshold, 0);
-          ctx.lineTo(leftThreshold, videoHeight);
-          ctx.stroke();
-          
-          // Línea derecha
-          ctx.beginPath();
-          ctx.moveTo(rightThreshold, 0);
-          ctx.lineTo(rightThreshold, videoHeight);
-          ctx.stroke();
-          
-          ctx.setLineDash([]); // Resetear línea punteada
-          
-          // Solo dibujar rectángulos de detección (sin puntos faciales ni expresiones)
-          resizedDetections.forEach((detection, index) => {
-            console.log(`🎯 Procesando rostro ${index + 1}:`, detection);
-            
-            // FaceDetection tiene la propiedad box directamente
-            const box = detection.box;
-            
-            if (box) {
-              // Calcular el centro de la detección
-              const centerX = box.x + box.width / 2;
-              const centerY = box.y + box.height / 2;
-              
-              console.log(`📍 Centro del rostro ${index + 1}: X=${Math.round(centerX)}, Y=${Math.round(centerY)}`);
-              
-              // Tamaño fijo del recuadro (80x80 píxeles)
-              const fixedSize = 80;
-              const halfSize = fixedSize / 2;
-              
-              // Dibujar recuadro de tamaño fijo centrado en la detección
-              ctx.strokeStyle = '#00ff00';
-              ctx.lineWidth = 2;
-              ctx.strokeRect(
-                centerX - halfSize, 
-                centerY - halfSize, 
-                fixedSize, 
-                fixedSize
-              );
+      // Detectar rostros usando TinyFaceDetector
+      const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
 
-              // Mostrar coordenadas en tiempo real
-              ctx.fillStyle = '#00ff00';
-              ctx.font = '14px Arial';
-              ctx.fillText(
-                `X: ${Math.round(centerX)} Y: ${Math.round(centerY)}`,
-                centerX - halfSize,
-                centerY - halfSize - 10
-              );
-              
-              // Mostrar zona actual
-              let zona = '';
-              if (centerX < leftThreshold) {
-                zona = 'IZQUIERDA';
-                ctx.fillStyle = '#ff6b6b';
-              } else if (centerX > rightThreshold) {
-                zona = 'DERECHA';
-                ctx.fillStyle = '#4ecdc4';
-              } else {
-                zona = 'CENTRO';
-                ctx.fillStyle = '#45b7d1';
-              }
-              
-              ctx.font = '12px Arial';
-              ctx.fillText(
-                zona,
-                centerX - halfSize,
-                centerY + halfSize + 20
-              );
+      if (detections && detections.length > 0) {
+        detections.forEach((detection, index) => {
+          const { x, y, width, height } = detection.box;
+          
+          // Calcular el centro del rostro
+          const centerX = x + width / 2;
+          const centerY = y + height / 2;
 
-              // Control del robot basado en posición del rostro (solo si está habilitado)
-              if (onRobotControl) {
-                let currentPosition: 'left' | 'right' | 'center';
-                
-                if (centerX < leftThreshold) {
-                  currentPosition = 'left';
-                } else if (centerX > rightThreshold) {
-                  currentPosition = 'right';
-                } else {
-                  currentPosition = 'center';
-                }
-                
-                // Solo enviar comando si la posición cambió
-                if (currentPosition !== lastFacePositionRef.current) {
-                  console.log('👤 Cambio de posición facial detectado:', {
-                    anterior: lastFacePositionRef.current,
-                    nueva: currentPosition,
-                    coordenadas: { x: centerX, y: centerY },
-                    umbrales: { izquierda: leftThreshold, derecha: rightThreshold }
-                  });
-                  
-                  lastFacePositionRef.current = currentPosition;
-                  
-                  if (onRobotControl) {
-                    console.log('🚀 Llamando a onRobotControl con:', currentPosition);
-                    onRobotControl(currentPosition);
-                  } else {
-                    console.log('❌ onRobotControl no está definido');
-                  }
-                }
-              }
-            }
-          });
-        }
-      } else {
-        // Si el seguimiento facial está deshabilitado, limpiar el canvas
-        console.log('👁️‍🗨️ Seguimiento facial deshabilitado, limpiando canvas');
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+          // Dibujar rectángulo alrededor del rostro
+          ctx.strokeStyle = '#00ff00';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, width, height);
+
+          // Dibujar punto central
+          ctx.fillStyle = '#ff0000';
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // Mostrar coordenadas
+          ctx.fillStyle = '#00ff00';
+          ctx.font = '16px Arial';
+          ctx.fillText(`X: ${Math.round(centerX)}, Y: ${Math.round(centerY)}`, x, y - 10);
+
+          // Determinar zona y enviar comando al robot
+          let zone = 'CENTRO';
+          if (centerX < canvas.width * 0.4) {
+            zone = 'IZQUIERDA';
+            if (onRobotControl) onRobotControl('left');
+          } else if (centerX > canvas.width * 0.6) {
+            zone = 'DERECHA';
+            if (onRobotControl) onRobotControl('right');
+          } else {
+            if (onRobotControl) onRobotControl('center');
+          }
+
+          // Mostrar zona
+          ctx.fillText(`Zona: ${zone}`, x, y + height + 20);
+        });
       }
     } catch (error) {
-      console.error('❌ Error en detectFaces:', error);
+      console.error('Error en detectFaces:', error);
     }
   };
 
   const handleVideoPlay = () => {
-    console.log('▶️ Video iniciado, configurando detección facial...');
-    console.log('🤖 Modelos cargados:', modelsLoaded);
-    console.log('👁️ Seguimiento facial habilitado:', faceTrackingEnabled);
-    
-    if (!modelsLoaded) {
-      console.log('⚠️ Modelos no cargados, no se puede iniciar detección');
-      return;
-    }
-    
-    // Esperar a que el video tenga dimensiones válidas
+    if (!videoRef.current || !canvasRef.current || !modelsLoaded) return;
+
     const video = videoRef.current;
-    if (video && (video.videoWidth === 0 || video.videoHeight === 0)) {
-      console.log('⏳ Esperando dimensiones del video...');
-      setTimeout(handleVideoPlay, 100);
-      return;
-    }
-    
-    console.log('✅ Video listo, iniciando bucle de detección');
-    
-    // Configurar dimensiones del canvas
     const canvas = canvasRef.current;
-    if (video && canvas) {
-      const displaySize = { width: video.videoWidth, height: video.videoHeight };
-      faceapi.matchDimensions(canvas, displaySize);
-      console.log('📐 Canvas configurado:', displaySize);
-    }
-    
-    // Iniciar bucle de detección continua
-    const startDetectionLoop = () => {
+
+    // Configurar el canvas para que coincida con el video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Iniciar el bucle de detección continua
+    const detectLoop = () => {
       detectFaces();
-      if (videoRef.current && !videoRef.current.paused && !videoRef.current.ended) {
-        requestAnimationFrame(startDetectionLoop);
-      }
+      requestAnimationFrame(detectLoop);
     };
-    
-    startDetectionLoop();
+
+    detectLoop();
   };
 
   const toggleWebcam = () => {
